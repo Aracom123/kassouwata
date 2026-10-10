@@ -1,0 +1,40 @@
+# ── Secrets : ne JAMAIS versionner ─────────────────────────────────────────
+.env
+.env.docker
+key.properties
+*.jks
+*.keystore
+local.properties
+
+# ── Données et sauvegardes locales ─────────────────────────────────────────
+*.sql
+kassouwata-back/images/
+Livrables/
+~$*
+
+# ── Journaux et crashs JVM ─────────────────────────────────────────────────
+*.log
+hs_err_pid*
+replay_pid*
+
+# ── Sorties de build et dépendances ────────────────────────────────────────
+target/
+build/
+dist/
+node_modules/
+.angular/
+.dart_tool/
+.flutter-plugins-dependencies
+
+# ── IDE / outils ───────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+.claude/
+**/.github/java-upgrade/
+**/.github/modernize/
+
+# ── Ancienne version de l'application vendeur (non publiée) ──────────────
+/kassouwata_vendeur/

@@ -1,0 +1,62 @@
+<div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:p-6">
+  <div class="mb-5">
+    <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">Répartition des commandes</h3>
+    <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">Par statut · Total : {{ totalCommandes }}</p>
+  </div>
+
+  <!-- Donut chart -->
+  @if (donutSeries.length > 0 && totalCommandes > 0) {
+    <div class="flex justify-center">
+      <apx-chart
+        [series]="donutSeries"
+        [chart]="donutChart"
+        [labels]="donutLabels"
+        [colors]="donutColors"
+        [fill]="donutFill"
+        [plotOptions]="donutPlotOptions"
+        [legend]="{ show: false }"
+      ></apx-chart>
+    </div>
+  } @else {
+    <div class="flex h-[200px] items-center justify-center">
+      <svg class="h-5 w-5 animate-spin text-gray-300" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  }
+
+  <!-- Légende avec barres de progression -->
+  <div class="mt-4 space-y-3">
+    @for (stat of statutStats; track stat.key) {
+      <div>
+        <div class="mb-1 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2.5 w-2.5 flex-shrink-0 rounded-full {{ stat.color }}"></span>
+            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">{{ stat.label }}</span>
+          </div>
+          <span class="text-xs font-semibold text-gray-800 dark:text-white/80">
+            {{ stat.value }} <span class="font-normal text-gray-400">({{ getPercent(stat.value) }}%)</span>
+          </span>
+        </div>
+        <div class="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+          <div
+            class="h-1.5 rounded-full {{ stat.color }} transition-all duration-700"
+            [style.width]="getPercent(stat.value) + '%'"
+          ></div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Lien -->
+  <div class="mt-5 border-t border-dashed border-gray-100 pt-4 dark:border-white/[0.05]">
+    <a routerLink="/commandes"
+      class="flex items-center justify-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400">
+      Gérer les commandes
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+      </svg>
+    </a>
+  </div>
+</div>

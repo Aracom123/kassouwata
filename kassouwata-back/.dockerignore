@@ -1,0 +1,7 @@
+target/
+*.log
+.git/
+.gitignore
+images/
+replay_pid*
+hs_err_pid*

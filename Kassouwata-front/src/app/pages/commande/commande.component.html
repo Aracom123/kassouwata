@@ -1,0 +1,473 @@
+<!-- ─── Notification ──────────────────────────────────── -->
+@if (showAlert) {
+  <div class="mb-4 transition-all duration-300">
+    <app-alert [variant]="variantType" title="" [message]="alertMessage" [showLink]="false" linkHref="/" linkText="" />
+  </div>
+}
+
+<!-- ─── En-tête ───────────────────────────────────────── -->
+<div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Gestion des commandes</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ totalElements }} commande(s) au total
+    </p>
+  </div>
+</div>
+
+<!-- ─── Indicateurs rapides ──────────────────────────── -->
+<div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+  <!-- En attente -->
+  <button (click)="onStatutChange('EN_ATTENTE')"
+    class="group flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedStatut === 'EN_ATTENTE' ? 'border-warning-400 bg-warning-50 dark:border-warning-700 dark:bg-warning-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-warning-100 dark:bg-warning-900/30">
+      <svg class="h-4 w-4 text-warning-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ commandesEnAttente }}</span>
+    <span class="text-xs text-warning-600 dark:text-warning-400 font-medium">En attente</span>
+  </button>
+
+  <!-- En livraison -->
+  <button (click)="onStatutChange('EN_LIVRAISON')"
+    class="group flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedStatut === 'EN_LIVRAISON' ? 'border-brand-400 bg-brand-50 dark:border-brand-700 dark:bg-brand-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+      <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ commandesEnLivraison }}</span>
+    <span class="text-xs text-blue-600 dark:text-blue-400 font-medium">En livraison</span>
+  </button>
+
+  <!-- Livrées -->
+  <button (click)="onStatutChange('LIVREE')"
+    class="group flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedStatut === 'LIVREE' ? 'border-success-400 bg-success-50 dark:border-success-700 dark:bg-success-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30">
+      <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ commandesLivrees }}</span>
+    <span class="text-xs text-success-600 dark:text-success-400 font-medium">Livrées</span>
+  </button>
+
+  <!-- Annulées -->
+  <button (click)="onStatutChange('ANNULEE')"
+    class="group flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedStatut === 'ANNULEE' ? 'border-error-400 bg-error-50 dark:border-error-700 dark:bg-error-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-error-100 dark:bg-error-900/30">
+      <svg class="h-4 w-4 text-error-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ commandesAnnulees }}</span>
+    <span class="text-xs text-error-600 dark:text-error-400 font-medium">Annulées</span>
+  </button>
+</div>
+
+<!-- ─── Barre de filtres ──────────────────────────────── -->
+<div class="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+  <div class="flex flex-col gap-3">
+    <!-- Ligne 1 : recherche + statut + type -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <!-- Recherche -->
+      <div class="relative flex-1">
+        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+        </span>
+        <input
+          type="text"
+          [value]="searchTerm"
+          (input)="onSearch($any($event.target).value)"
+          placeholder="Rechercher par client, téléphone ou ID..."
+          class="h-[42px] w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-10 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+        />
+      </div>
+
+      <!-- Filtre statut -->
+      <select
+        [value]="selectedStatut"
+        (change)="onStatutChange($any($event.target).value)"
+        class="h-[42px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+      >
+        @for (s of statuts; track s.value) {
+          <option [value]="s.value">{{ s.label }}</option>
+        }
+      </select>
+
+      <!-- Filtre type de vente -->
+      <select
+        [value]="selectedTypeVente"
+        (change)="onTypeVenteChange($any($event.target).value)"
+        class="h-[42px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+      >
+        @for (t of typesVente; track t.value) {
+          <option [value]="t.value">{{ t.label }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Ligne 2 : filtres date + effacer -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">Du :</label>
+        <input
+          type="date"
+          [value]="dateDebut"
+          (change)="onDateDebutChange($any($event.target).value)"
+          class="h-[38px] rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+        />
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-medium text-gray-500 dark:text-gray-400 whitespace-nowrap">Au :</label>
+        <input
+          type="date"
+          [value]="dateFin"
+          (change)="onDateFinChange($any($event.target).value)"
+          class="h-[38px] rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+        />
+      </div>
+      @if (hasActiveFilters) {
+        <button
+          (click)="clearFilters()"
+          class="ml-auto flex h-[38px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.05]"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+          Effacer les filtres
+        </button>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ─── Tableau ───────────────────────────────────────── -->
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+
+  @if (isLoading) {
+    <div class="flex items-center justify-center py-16">
+      <svg class="h-8 w-8 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-b border-gray-100 dark:border-white/[0.05]">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"># / Date</th>
+            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Client</th>
+            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Type</th>
+            <th class="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Montant (FCFA)</th>
+            <th class="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Commission</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Statut</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+          </tr>
+        </thead>
+
+        @if (commandes.length > 0) {
+          <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+            @for (commande of commandes; track commande.idCommande) {
+              <tr class="group transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                <!-- ID + Date -->
+                <td class="px-5 py-4">
+                  <span class="block text-xs font-bold text-brand-600 dark:text-brand-400">#{{ commande.idCommande }}</span>
+                  <span class="mt-0.5 block text-xs text-gray-400">{{ commande.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+                </td>
+
+                <!-- Client -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center gap-2.5">
+                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                      {{ (commande.client?.personne?.nom ?? 'C')[0].toUpperCase() }}
+                    </div>
+                    <div>
+                      <span class="block text-sm font-medium text-gray-800 dark:text-white/90">
+                        {{ commande.client?.personne?.nom }} {{ commande.client?.personne?.prenom }}
+                      </span>
+                      <span class="block text-xs text-gray-400">{{ commande.client?.telephone }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Type de vente -->
+                <td class="px-4 py-4">
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
+                    {{ commande.typeVente === 'PREPAYE' ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' : 'bg-teal-50 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400' }}">
+                    {{ commande.typeVente === 'PREPAYE' ? 'Prépayé' : 'Postpayé' }}
+                  </span>
+                </td>
+
+                <!-- Montant -->
+                <td class="px-4 py-4 text-right">
+                  <span class="text-sm font-semibold text-gray-800 dark:text-white/90">
+                    {{ commande.montantTotal | number:'1.0-0' }}
+                  </span>
+                </td>
+
+                <!-- Commission -->
+                <td class="px-4 py-4 text-right">
+                  <span class="text-sm font-medium text-success-600 dark:text-success-400">
+                    {{ calculCommission(commande) | number:'1.0-0' }}
+                  </span>
+                </td>
+
+                <!-- Statut -->
+                <td class="px-4 py-4 text-center">
+                  <app-badge size="sm" [color]="getBadgeColor(commande.statut)">
+                    {{ getStatutLabel(commande.statut) }}
+                  </app-badge>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-4 py-4">
+                  <div class="flex items-end justify-end gap-1.5">
+                    <!-- Voir détail -->
+                    <a
+                      [routerLink]="['/commandes', encode(commande.idCommande)]"
+                      class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-900/20"
+                      title="Voir le détail"
+                    >
+                      <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                    </a>
+
+                    <!-- Action statut suivant rapide -->
+                    <!-- @if (getProchainStatut(commande)) {
+                      <button
+                        (click)="openStatutRapideModal(commande, getProchainStatut(commande)!)"
+                        class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-success-50 hover:text-success-600 dark:text-gray-400 dark:hover:bg-success-900/20"
+                        [title]="getProchainStatutLabel(commande)"
+                      >
+                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        </svg>
+                      </button>
+                    } -->
+
+                    <!-- Modifier -->
+                    <!-- @if (commande.statut !== 'LIVREE' && commande.statut !== 'ANNULEE') {
+                      <button
+                        (click)="openUpdateModal(commande)"
+                        class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-warning-50 hover:text-warning-600 dark:text-gray-400 dark:hover:bg-warning-900/20"
+                        title="Modifier"
+                      >
+                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                        </svg>
+                      </button>
+                    } -->
+
+                    <!-- Annuler la commande -->
+                    <!-- @if (canAnnuler(commande)) {
+                      <button
+                        (click)="openStatutRapideModal(commande, 'ANNULEE')"
+                        class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-error-50 hover:text-error-600 dark:text-gray-400 dark:hover:bg-error-900/20"
+                        title="Annuler la commande"
+                      >
+                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    } -->
+
+                    <!-- Supprimer -->
+                    <!-- @if (commande.statut === 'EN_ATTENTE' || commande.statut === 'ANNULEE') {
+                      <button
+                        (click)="openDeleteModal(commande)"
+                        class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-error-50 hover:text-error-600 dark:text-gray-400 dark:hover:bg-error-900/20"
+                        title="Supprimer définitivement"
+                      >
+                        <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                      </button>
+                    } -->
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        }
+      </table>
+
+      @if (commandes.length === 0) {
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <svg class="mb-4 h-14 w-14 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007Z" />
+          </svg>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Aucune commande trouvée</p>
+          @if (hasActiveFilters) {
+            <button (click)="clearFilters()" class="mt-2 text-sm text-brand-600 hover:underline dark:text-brand-400">Effacer les filtres</button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between border-t border-gray-100 px-5 py-3.5 dark:border-white/[0.05]">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Page <span class="font-medium text-gray-800 dark:text-white/90">{{ page + 1 }}</span>
+          sur <span class="font-medium text-gray-800 dark:text-white/90">{{ totalPages }}</span>
+          &nbsp;·&nbsp; <span class="font-medium">{{ totalElements }}</span> résultats
+        </p>
+        <div class="flex items-center gap-1">
+          <button (click)="goToPage(page - 1)" [disabled]="page === 0"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+          </button>
+          @for (p of pages; track p) {
+            @if (p >= page - 2 && p <= page + 2) {
+              <button (click)="goToPage(p)"
+                [class.bg-brand-500]="p === page" [class.text-white]="p === page" [class.border-brand-500]="p === page"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">
+                {{ p + 1 }}
+              </button>
+            }
+          }
+          <button (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ─── Modal Modifier ────────────────────────────────── -->
+<app-modal [isOpen]="isUpdateModalOpen" (close)="closeUpdateModal()" className="max-w-[520px] m-4">
+  <div class="no-scrollbar relative w-full max-w-[520px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+    <h4 class="mb-5 text-xl font-semibold text-gray-800 dark:text-white/90">
+      Modifier la commande
+      @if (commandeToUpdate) {
+        <span class="text-base font-normal text-gray-500"> #{{ commandeToUpdate.idCommande }}</span>
+      }
+    </h4>
+    <form [formGroup]="updateForm" (ngSubmit)="onUpdateCommande()" class="space-y-4">
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Statut <span class="text-error-500">*</span>
+        </label>
+        <select formControlName="statut"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+          @for (s of statuts; track s.value) {
+            @if (s.value) {
+              <option [value]="s.value">{{ s.label }}</option>
+            }
+          }
+        </select>
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Type de vente</label>
+        <select formControlName="typeVente"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+          <option value="">-- Sélectionner --</option>
+          <option value="PREPAYE">Prépayé</option>
+          <option value="POSTPAYE">Postpayé</option>
+        </select>
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Moyen de paiement</label>
+        <select formControlName="moyenPaiement"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+          <option value="">-- Sélectionner --</option>
+          <option value="ESPECES">Espèces</option>
+          <option value="MOBILE_MONEY">Mobile Money</option>
+          <option value="VIREMENT">Virement bancaire</option>
+          <option value="CARTE">Carte bancaire</option>
+        </select>
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Adresse de livraison</label>
+        <app-input-field type="text" formControlName="adresseLivraison" />
+      </div>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" (click)="closeUpdateModal()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <app-button variant="success" size="sm" [disabled]="updateForm.invalid || isUpdating">
+          {{ isUpdating ? 'Enregistrement...' : 'Enregistrer' }}
+        </app-button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<!-- ─── Modal Changement statut rapide ────────────────── -->
+@if (commandeStatutRapide && targetStatutRapide) {
+  <app-modal [isOpen]="isStatutRapideModalOpen" (close)="closeStatutRapideModal()" className="max-w-[420px] m-4">
+    <div class="no-scrollbar relative w-full max-w-[420px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full
+        {{ targetStatutRapide === 'ANNULEE' ? 'bg-error-50 dark:bg-error-900/20' : 'bg-brand-50 dark:bg-brand-900/20' }}">
+        @if (targetStatutRapide === 'ANNULEE') {
+          <svg class="h-6 w-6 text-error-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        } @else {
+          <svg class="h-6 w-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        }
+      </div>
+      <h4 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+        {{ targetStatutRapide === 'ANNULEE' ? 'Annuler la commande ?' : 'Confirmer l\'action' }}
+      </h4>
+      <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+        Commande <strong class="text-gray-700 dark:text-gray-200">#{{ commandeStatutRapide.idCommande }}</strong>
+        &nbsp;→&nbsp;
+        <app-badge size="sm" [color]="getBadgeColor(targetStatutRapide)">{{ getStatutLabel(targetStatutRapide) }}</app-badge>
+      </p>
+      <div class="flex items-center justify-end gap-3">
+        <button (click)="closeStatutRapideModal()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <button (click)="confirmerStatutRapide()"
+          class="rounded-lg px-4 py-2.5 text-sm font-medium text-white
+            {{ targetStatutRapide === 'ANNULEE' ? 'bg-error-500 hover:bg-error-600' : 'bg-brand-500 hover:bg-brand-600' }}">
+          Confirmer
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
+
+<!-- ─── Modal Supprimer ───────────────────────────────── -->
+@if (commandeToDelete) {
+  <app-modal [isOpen]="isDeleteModalOpen" (close)="closeDeleteModal()" className="max-w-[450px] m-4">
+    <div class="no-scrollbar relative w-full max-w-[450px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/20">
+        <svg class="h-6 w-6 text-error-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <h4 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">Supprimer la commande #{{ commandeToDelete.idCommande }} ?</h4>
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">Cette action est irréversible. La commande sera définitivement supprimée.</p>
+      <div class="flex items-center justify-end gap-3">
+        <button (click)="closeDeleteModal()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <button (click)="onDeleteCommande()" [disabled]="isDeleting"
+          class="rounded-lg bg-error-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-600 disabled:opacity-60">
+          {{ isDeleting ? 'Suppression...' : 'Supprimer' }}
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}

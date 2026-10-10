@@ -1,0 +1,426 @@
+<div class="landing">
+
+  <!-- ─── NAVBAR ──────────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <div class="navbar__inner">
+      <div class="navbar__brand">
+        <span class="brand-dot brand-dot--blue"></span>
+        <span class="brand-dot brand-dot--green"></span>
+        <span class="navbar__name">Kassouwata</span>
+      </div>
+      <a routerLink="/signin" class="btn btn--outline">Espace Admin</a>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__bg-shape hero__bg-shape--1"></div>
+    <div class="hero__bg-shape hero__bg-shape--2"></div>
+    <div class="hero__content">
+      <span class="hero__badge">Commerce & Tontine</span>
+      <h1 class="hero__title">
+        Achetez, vendez et<br />
+        <span class="hero__title--accent">gérez vos tontines</span><br />
+        en un seul endroit.
+      </h1>
+      <p class="hero__subtitle">
+        Kassouwata est la plateforme qui connecte vendeurs et acheteurs,
+        tout en facilitant la gestion des tontines communautaires de manière
+        simple, sécurisée et transparente.
+      </p>
+      <div class="hero__actions">
+        <a [href]="clientApkUrl" class="btn btn--primary">
+          <span class="material-icons">android</span>
+          App Client
+        </a>
+        <a [href]="vendorApkUrl" class="btn btn--secondary">
+          <span class="material-icons">storefront</span>
+          App Vendeur
+        </a>
+      </div>
+    </div>
+    <div class="hero__visual">
+      <div class="phone-mockup">
+        <div class="phone-mockup__screen">
+          <div class="mock-header">
+            <div class="mock-avatar"></div>
+            <div class="mock-lines">
+              <div class="mock-line mock-line--w60"></div>
+              <div class="mock-line mock-line--w40"></div>
+            </div>
+          </div>
+          <div class="mock-grid">
+            <div class="mock-card mock-card--blue"></div>
+            <div class="mock-card mock-card--green"></div>
+            <div class="mock-card mock-card--light"></div>
+            <div class="mock-card mock-card--light2"></div>
+          </div>
+          <div class="mock-list">
+            <div class="mock-list-item" *ngFor="let i of [1,2,3]">
+              <div class="mock-thumb"></div>
+              <div class="mock-info">
+                <div class="mock-line mock-line--w70"></div>
+                <div class="mock-line mock-line--w40"></div>
+              </div>
+              <div class="mock-price"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ────────────────────────────────────────────────── -->
+  <section class="features" id="features">
+    <div class="section__label">Fonctionnalités</div>
+    <h2 class="section__title">Tout ce dont vous avez besoin</h2>
+    <p class="section__subtitle">
+      Une application pensée pour le commerce local et la solidarité communautaire.
+    </p>
+    <div class="features__grid">
+      <div class="feature-card" *ngFor="let f of features">
+        <div class="feature-card__icon">
+          <span class="material-icons">{{ f.icon }}</span>
+        </div>
+        <h3 class="feature-card__title">{{ f.title }}</h3>
+        <p class="feature-card__desc">{{ f.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── DOWNLOAD ─────────────────────────────────────────────────── -->
+  <section class="download" id="download">
+    <div class="download__inner">
+      <div class="download__text">
+        <div class="section__label section__label--light">Téléchargement</div>
+        <h2 class="download__title">Disponible sur Android</h2>
+        <p class="download__subtitle">
+          Téléchargez l'application adaptée à votre profil et commencez
+          à utiliser Kassouwata dès aujourd'hui.
+        </p>
+      </div>
+      <div class="download__cards">
+
+        <!-- App Client -->
+        <div class="dl-card">
+          <div class="dl-card__icon dl-card__icon--blue">
+            <span class="material-icons">person</span>
+          </div>
+          <div class="dl-card__body">
+            <h3 class="dl-card__title">Application Client</h3>
+            <p class="dl-card__desc">
+              Parcourez les boutiques, passez des commandes et rejoignez des tontines.
+            </p>
+            <a [href]="clientApkUrl" class="btn btn--download">
+              <span class="material-icons">download</span>
+              Télécharger l'APK
+            </a>
+          </div>
+        </div>
+
+        <!-- App Vendeur -->
+        <div class="dl-card">
+          <div class="dl-card__icon dl-card__icon--green">
+            <span class="material-icons">storefront</span>
+          </div>
+          <div class="dl-card__body">
+            <h3 class="dl-card__title">Application Vendeur</h3>
+            <p class="dl-card__desc">
+              Gérez votre boutique, vos produits, vos commandes et vos tontines.
+            </p>
+            <a [href]="vendorApkUrl" class="btn btn--download btn--download-green">
+              <span class="material-icons">download</span>
+              Télécharger l'APK
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ───────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <div class="navbar__brand">
+        <span class="brand-dot brand-dot--blue"></span>
+        <span class="brand-dot brand-dot--green"></span>
+        <span class="navbar__name">Kassouwata</span>
+      </div>
+      <p class="footer__copy">© {{ currentYear }} Kassouwata. Tous droits réservés.</p>
+      <a routerLink="/signin" class="footer__admin">Espace Admin →</a>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ─── STYLES ────────────────────────────────────────────────────── -->
+<style>
+  /* Reset & base */
+  .landing { font-family: 'Inter', sans-serif; color: #1a1a2e; background: #fff; }
+
+  /* ── Navbar ── */
+  .navbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .navbar__inner {
+    max-width: 1100px; margin: 0 auto;
+    padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .navbar__brand { display: flex; align-items: center; gap: 6px; }
+  .brand-dot {
+    width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  }
+  .brand-dot--blue  { background: #3b98c0; }
+  .brand-dot--green { background: #75b54b; }
+  .navbar__name { font-weight: 700; font-size: 1.2rem; color: #1a1a2e; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 8px;
+    font-weight: 600; font-size: 0.9rem; text-decoration: none;
+    transition: all 0.2s; cursor: pointer; border: none;
+  }
+  .btn .material-icons { font-size: 1.1rem; }
+  .btn--outline {
+    border: 1.5px solid #3b98c0; color: #3b98c0; background: transparent;
+  }
+  .btn--outline:hover { background: #3b98c0; color: #fff; }
+  .btn--primary {
+    background: #3b98c0; color: #fff;
+    box-shadow: 0 4px 14px rgba(59,152,192,0.35);
+  }
+  .btn--primary:hover { background: #2e7fa6; transform: translateY(-1px); }
+  .btn--secondary {
+    background: #75b54b; color: #fff;
+    box-shadow: 0 4px 14px rgba(117,181,75,0.35);
+  }
+  .btn--secondary:hover { background: #5e9a38; transform: translateY(-1px); }
+  .btn--download {
+    background: #3b98c0; color: #fff;
+    padding: 12px 24px; border-radius: 8px; margin-top: 16px;
+    box-shadow: 0 4px 12px rgba(59,152,192,0.3);
+  }
+  .btn--download:hover { background: #2e7fa6; }
+  .btn--download-green { background: #75b54b; box-shadow: 0 4px 12px rgba(117,181,75,0.3); }
+  .btn--download-green:hover { background: #5e9a38; }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative; overflow: hidden;
+    min-height: 88vh;
+    display: flex; align-items: center;
+    max-width: 1100px; margin: 0 auto;
+    padding: 80px 24px 60px;
+    gap: 60px;
+  }
+  .hero__bg-shape {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; z-index: 0;
+  }
+  .hero__bg-shape--1 {
+    width: 500px; height: 500px; background: #3b98c0;
+    top: -100px; right: -100px;
+  }
+  .hero__bg-shape--2 {
+    width: 300px; height: 300px; background: #75b54b;
+    bottom: 0; left: 50px;
+  }
+  .hero__content { flex: 1; position: relative; z-index: 1; }
+  .hero__badge {
+    display: inline-block;
+    background: rgba(59,152,192,0.12); color: #3b98c0;
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 0.8rem; font-weight: 600; margin-bottom: 20px;
+    border: 1px solid rgba(59,152,192,0.25);
+  }
+  .hero__title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800; line-height: 1.2;
+    color: #1a1a2e; margin: 0 0 20px;
+  }
+  .hero__title--accent {
+    background: linear-gradient(135deg, #3b98c0, #75b54b);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .hero__subtitle {
+    font-size: 1.05rem; color: #555; line-height: 1.7;
+    max-width: 500px; margin-bottom: 36px;
+  }
+  .hero__actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* ── Phone mockup ── */
+  .hero__visual { flex: 0 0 300px; position: relative; z-index: 1; }
+  .phone-mockup {
+    width: 260px; height: 480px;
+    background: #1a1a2e;
+    border-radius: 36px;
+    padding: 16px 12px;
+    box-shadow: 0 30px 80px rgba(26,26,46,0.25), 0 0 0 8px #2a2a3e;
+    margin: 0 auto;
+  }
+  .phone-mockup__screen {
+    background: #f5f7fa; border-radius: 24px;
+    height: 100%; overflow: hidden; padding: 16px 12px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .mock-header { display: flex; align-items: center; gap: 10px; }
+  .mock-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #3b98c0, #75b54b); flex-shrink: 0;
+  }
+  .mock-lines { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .mock-line {
+    height: 8px; background: #dde2e8; border-radius: 4px;
+  }
+  .mock-line--w40 { width: 40%; }
+  .mock-line--w60 { width: 60%; }
+  .mock-line--w70 { width: 70%; }
+  .mock-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .mock-card {
+    height: 60px; border-radius: 12px;
+  }
+  .mock-card--blue  { background: linear-gradient(135deg, #3b98c0, #5bbde0); }
+  .mock-card--green { background: linear-gradient(135deg, #75b54b, #96d466); }
+  .mock-card--light  { background: #e8f4fb; }
+  .mock-card--light2 { background: #eef7e6; }
+  .mock-list { display: flex; flex-direction: column; gap: 10px; }
+  .mock-list-item {
+    display: flex; align-items: center; gap: 8px;
+    background: #fff; border-radius: 10px; padding: 8px;
+  }
+  .mock-thumb {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: #dde2e8; flex-shrink: 0;
+  }
+  .mock-info { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .mock-price {
+    width: 40px; height: 8px; background: #3b98c0;
+    border-radius: 4px; flex-shrink: 0;
+  }
+
+  /* ── Section commons ── */
+  .section__label {
+    display: inline-block;
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: #3b98c0;
+    margin-bottom: 12px;
+  }
+  .section__label--light { color: rgba(255,255,255,0.7); }
+  .section__title {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800; color: #1a1a2e; margin: 0 0 14px;
+  }
+  .section__subtitle {
+    font-size: 1rem; color: #666; max-width: 520px; line-height: 1.7;
+    margin: 0 auto 48px;
+  }
+
+  /* ── Features ── */
+  .features {
+    background: #f8fafc;
+    padding: 80px 24px;
+    text-align: center;
+  }
+  .features__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 24px;
+    max-width: 1100px; margin: 0 auto;
+  }
+  .feature-card {
+    background: #fff; border-radius: 16px;
+    padding: 28px 24px;
+    text-align: left;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+  }
+  .feature-card__icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(59,152,192,0.15), rgba(117,181,75,0.15));
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .feature-card__icon .material-icons { color: #3b98c0; font-size: 1.5rem; }
+  .feature-card__title {
+    font-size: 1rem; font-weight: 700; color: #1a1a2e; margin: 0 0 10px;
+  }
+  .feature-card__desc {
+    font-size: 0.9rem; color: #666; line-height: 1.65; margin: 0;
+  }
+
+  /* ── Download ── */
+  .download {
+    background: linear-gradient(135deg, #1a1a2e 0%, #1e3a52 60%, #1a2e1a 100%);
+    padding: 80px 24px;
+  }
+  .download__inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 48px; align-items: center;
+  }
+  .download__text { flex: 1; min-width: 260px; }
+  .download__title {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 800; color: #fff; margin: 0 0 14px;
+  }
+  .download__subtitle {
+    font-size: 1rem; color: rgba(255,255,255,0.65); line-height: 1.7;
+  }
+  .download__cards { display: flex; gap: 20px; flex-wrap: wrap; flex: 1; }
+  .dl-card {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px; padding: 24px;
+    flex: 1; min-width: 220px;
+    backdrop-filter: blur(10px);
+  }
+  .dl-card__icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .dl-card__icon--blue  { background: rgba(59,152,192,0.25); }
+  .dl-card__icon--green { background: rgba(117,181,75,0.25); }
+  .dl-card__icon .material-icons { font-size: 1.6rem; color: #fff; }
+  .dl-card__title {
+    font-size: 1.05rem; font-weight: 700; color: #fff; margin: 0 0 8px;
+  }
+  .dl-card__desc {
+    font-size: 0.87rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin: 0;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    background: #f8fafc; border-top: 1px solid #eee;
+    padding: 24px;
+  }
+  .footer__inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer__copy { font-size: 0.85rem; color: #888; margin: 0; }
+  .footer__admin {
+    font-size: 0.85rem; color: #3b98c0; text-decoration: none; font-weight: 600;
+  }
+  .footer__admin:hover { text-decoration: underline; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero { flex-direction: column; padding-top: 40px; text-align: center; }
+    .hero__subtitle { max-width: 100%; }
+    .hero__actions { justify-content: center; }
+    .hero__visual { display: none; }
+    .download__inner { flex-direction: column; }
+  }
+</style>

@@ -1,0 +1,392 @@
+<!-- ─── Notification ──────────────────────────────────────────── -->
+@if (showAlert) {
+  <div class="mb-4 transition-all duration-300">
+    <app-alert [variant]="variantType" title="" [message]="alertMessage" [showLink]="false" linkHref="/" linkText="" />
+  </div>
+}
+
+<!-- ─── En-tête ───────────────────────────────────────────────── -->
+<div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Gestion des tontines</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ totalElements }} tontine(s) au total
+    </p>
+  </div>
+  <button type="button" (click)="openAddModal()"
+    class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Nouvelle tontine
+  </button>
+</div>
+
+<!-- ─── Indicateurs rapides ───────────────────────────────────── -->
+<div class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+  <button (click)="onPeriodiciteChange('HEBDOMADAIRE')"
+    class="flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedPeriodicite === 'HEBDOMADAIRE' ? 'border-brand-400 bg-brand-50 dark:border-brand-700 dark:bg-brand-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30">
+      <svg class="h-4 w-4 text-brand-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ tontinesHebdo }}</span>
+    <span class="text-xs text-brand-600 dark:text-brand-400 font-medium">Hebdomadaires</span>
+  </button>
+
+  <button (click)="onPeriodiciteChange('MENSUEL')"
+    class="flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedPeriodicite === 'MENSUEL' ? 'border-success-400 bg-success-50 dark:border-success-700 dark:bg-success-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30">
+      <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ tontinesMensuelles }}</span>
+    <span class="text-xs text-success-600 dark:text-success-400 font-medium">Mensuelles</span>
+  </button>
+
+  <button (click)="onPeriodiciteChange('TRIMESTRIEL')"
+    class="flex flex-col items-start rounded-2xl border px-4 py-3 transition-all hover:shadow-sm
+      {{ selectedPeriodicite === 'TRIMESTRIEL' ? 'border-purple-400 bg-purple-50 dark:border-purple-700 dark:bg-purple-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/30">
+      <svg class="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ tontinesTrimestrielles }}</span>
+    <span class="text-xs text-purple-600 dark:text-purple-400 font-medium">Trimestrielles</span>
+  </button>
+
+  <button
+    class="flex flex-col items-start rounded-2xl border border-gray-200 bg-white px-4 py-3 transition-all hover:shadow-sm dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+      <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ tontinesAutres }}</span>
+    <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Autres</span>
+  </button>
+</div>
+
+<!-- ─── Barre de filtres ───────────────────────────────────────── -->
+<div class="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <!-- Recherche -->
+    <div class="relative flex-1">
+      <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      </span>
+      <input
+        type="text"
+        [value]="searchTerm"
+        (input)="onSearch($any($event.target).value)"
+        placeholder="Rechercher par libellé ou propriétaire..."
+        class="h-[42px] w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-10 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+      />
+    </div>
+
+    <!-- Filtre périodicité -->
+    <select
+      [value]="selectedPeriodicite"
+      (change)="onPeriodiciteSelectChange($any($event.target).value)"
+      class="h-[42px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+    >
+      @for (p of periodicites; track p.value) {
+        <option [value]="p.value">{{ p.label }}</option>
+      }
+    </select>
+
+    @if (hasActiveFilters) {
+      <button
+        (click)="clearFilters()"
+        class="flex h-[42px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.05]"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+        Effacer
+      </button>
+    }
+  </div>
+</div>
+
+<!-- ─── Tableau ────────────────────────────────────────────────── -->
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+
+  @if (isLoading) {
+    <div class="flex items-center justify-center py-16">
+      <svg class="h-8 w-8 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  }
+
+  @if (!isLoading) {
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-b border-gray-100 dark:border-white/[0.05]">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Tontine</th>
+            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Propriétaire</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Périodicité</th>
+            <th class="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Montant (FCFA)</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Dates</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+          </tr>
+        </thead>
+
+        @if (tontines.length > 0) {
+          <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+            @for (tontine of tontines; track tontine.idTontine) {
+              <tr class="group transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+
+                <!-- Tontine -->
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-success-100 text-sm font-bold text-success-700 dark:bg-success-900/30 dark:text-success-300">
+                      {{ getInitiales(tontine) }}
+                    </div>
+                    <div>
+                      <a [routerLink]="['/tontines', encode(tontine.idTontine)]"
+                        class="block text-sm font-semibold text-gray-800 hover:text-brand-600 dark:text-white/90 dark:hover:text-brand-400">
+                        {{ tontine.libelle }}
+                      </a>
+                      <span class="block text-xs text-gray-400 line-clamp-1">{{ tontine.description || '—' }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Propriétaire -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center gap-2">
+                    <div class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                      {{ (tontine.tontineOwner?.personne?.nom ?? 'P')[0].toUpperCase() }}
+                    </div>
+                    <div>
+                      <span class="block text-sm font-medium text-gray-800 dark:text-white/90">
+                        {{ tontine.tontineOwner?.personne?.prenom }} {{ tontine.tontineOwner?.personne?.nom }}
+                      </span>
+                      <span class="block text-xs text-gray-400">{{ tontine.tontineOwner?.telephone }}</span>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Périodicité -->
+                <td class="px-4 py-4 text-center">
+                  <span class="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 dark:bg-brand-900/20 dark:text-brand-400">
+                    {{ getPeriodiciteLabel(tontine.periodicite) }}
+                  </span>
+                </td>
+
+                <!-- Montant -->
+                <td class="px-4 py-4 text-right">
+                  <span class="text-sm font-semibold text-gray-800 dark:text-white/90">
+                    {{ tontine.montant | number:'1.0-0' }}
+                  </span>
+                </td>
+
+                <!-- Dates -->
+                <td class="px-4 py-4 text-center">
+                  <span class="block text-xs text-gray-500 dark:text-gray-400">
+                    {{ tontine.dateDebut | date:'dd/MM/yyyy' }}
+                  </span>
+                  <span class="block text-xs text-gray-400">→ {{ tontine.dateFin | date:'dd/MM/yyyy' }}</span>
+                </td>
+
+                <!-- Actions -->
+                <td class="px-4 py-4">
+                  <div class="flex items-center justify-center gap-1.5">
+                    <a [routerLink]="['/tontines', encode(tontine.idTontine)]"
+                      class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-brand-50 hover:text-brand-600 dark:text-gray-400 dark:hover:bg-brand-900/20"
+                      title="Voir le détail">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                      </svg>
+                    </a>
+                    <button (click)="openEditModal(tontine)"
+                      class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-warning-50 hover:text-warning-600 dark:text-gray-400 dark:hover:bg-warning-900/20"
+                      title="Modifier">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                      </svg>
+                    </button>
+                    <button (click)="openDeleteModal(tontine)"
+                      class="inline-flex items-center justify-center rounded-lg p-1.5 text-gray-500 hover:bg-error-50 hover:text-error-600 dark:text-gray-400 dark:hover:bg-error-900/20"
+                      title="Supprimer">
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        }
+      </table>
+
+      @if (tontines.length === 0) {
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <svg class="mb-4 h-14 w-14 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Aucune tontine trouvée</p>
+          @if (hasActiveFilters) {
+            <button (click)="clearFilters()" class="mt-2 text-sm text-brand-600 hover:underline dark:text-brand-400">Effacer les filtres</button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="flex items-center justify-between border-t border-gray-100 px-5 py-3.5 dark:border-white/[0.05]">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Page <span class="font-medium text-gray-800 dark:text-white/90">{{ page + 1 }}</span>
+          sur <span class="font-medium text-gray-800 dark:text-white/90">{{ totalPages }}</span>
+          &nbsp;·&nbsp; <span class="font-medium">{{ totalElements }}</span> résultats
+        </p>
+        <div class="flex items-center gap-1">
+          <button (click)="goToPage(page - 1)" [disabled]="page === 0"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+          </button>
+          @for (p of pages; track p) {
+            @if (p >= page - 2 && p <= page + 2) {
+              <button (click)="goToPage(p)"
+                [class.bg-brand-500]="p === page" [class.text-white]="p === page" [class.border-brand-500]="p === page"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">
+                {{ p + 1 }}
+              </button>
+            }
+          }
+          <button (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ─── Modal Ajout / Modification ───────────────────────────── -->
+<app-modal [isOpen]="isFormModalOpen" (close)="closeFormModal()" className="max-w-[580px] m-4">
+  <div class="no-scrollbar relative w-full max-w-[580px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+    <h4 class="mb-5 text-xl font-semibold text-gray-800 dark:text-white/90">
+      {{ tontineToEdit ? 'Modifier la tontine' : 'Nouvelle tontine' }}
+    </h4>
+    <form [formGroup]="tontineForm" (ngSubmit)="onSave()" class="space-y-4">
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Propriétaire <span class="text-error-500">*</span>
+        </label>
+        <select formControlName="tontineOwner" [compareWith]="compareMembre"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+          <option [ngValue]="null">-- Sélectionner un membre --</option>
+          @for (m of membres; track m.idUser) {
+            <option [ngValue]="m">{{ m.personne?.prenom }} {{ m.personne?.nom }} — {{ m.telephone }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Libellé <span class="text-error-500">*</span>
+        </label>
+        <app-input-field type="text" formControlName="libelle" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Montant (FCFA) <span class="text-error-500">*</span>
+          </label>
+          <app-input-field type="number" formControlName="montant" />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Périodicité <span class="text-error-500">*</span>
+          </label>
+          <select formControlName="periodicite"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+            <option value="">-- Sélectionner --</option>
+            @for (p of periodicites; track p.value) {
+              @if (p.value) {
+                <option [value]="p.value">{{ p.label }}</option>
+              }
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Date de début <span class="text-error-500">*</span>
+          </label>
+          <app-date-picker (dateChange)="handleDateDebutChange($event)" />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Date de fin <span class="text-error-500">*</span>
+          </label>
+          <app-date-picker (dateChange)="handleDateFinChange($event)" />
+        </div>
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+        <app-text-area [rows]="3" formControlName="description"></app-text-area>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" (click)="closeFormModal()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <app-button variant="success" size="sm" [disabled]="tontineForm.invalid || isSaving">
+          {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
+        </app-button>
+      </div>
+    </form>
+  </div>
+</app-modal>
+
+<!-- ─── Modal Suppression ─────────────────────────────────────── -->
+@if (tontineToDelete) {
+  <app-modal [isOpen]="isDeleteModalOpen" (close)="closeDeleteModal()" className="max-w-[450px] m-4">
+    <div class="no-scrollbar relative w-full max-w-[450px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+      <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-error-50 dark:bg-error-900/20">
+        <svg class="h-6 w-6 text-error-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <h4 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">
+        Supprimer "{{ tontineToDelete.libelle }}" ?
+      </h4>
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+        Cette action est irréversible. La tontine et toutes ses données seront définitivement supprimées.
+      </p>
+      <div class="flex items-center justify-end gap-3">
+        <button (click)="closeDeleteModal()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <button (click)="onDelete()" [disabled]="isDeleting"
+          class="rounded-lg bg-error-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-error-600 disabled:opacity-60">
+          {{ isDeleting ? 'Suppression...' : 'Supprimer' }}
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}

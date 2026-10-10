@@ -1,0 +1,393 @@
+<!-- ─── Notification ──────────────────────────────────────── -->
+@if (showAlert) {
+  <div class="mb-4">
+    <app-alert [variant]="variantType" title="" [message]="alertMessage" [showLink]="false" linkHref="/" linkText="" />
+  </div>
+}
+
+<!-- ─── Loader ────────────────────────────────────────────── -->
+@if (isLoading) {
+  <div class="flex items-center justify-center py-24">
+    <svg class="h-10 w-10 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+  </div>
+}
+
+@if (!isLoading && tontine) {
+
+<!-- ─── En-tête Hero ──────────────────────────────────────── -->
+<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+  <div class="flex items-start gap-4">
+    <!-- Icône tontine -->
+    <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30">
+      <svg class="h-7 w-7 text-purple-600 dark:text-purple-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+      </svg>
+    </div>
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ tontine.libelle }}</h2>
+      <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+        {{ getPeriodiciteLabel(tontine.periodicite) }}
+        · Mise : <strong class="text-gray-700 dark:text-gray-300">{{ tontine.montant | number:'1.0-0' }} FCFA</strong>
+      </p>
+      @if (tontine.tontineOwner) {
+        <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+          Créée par :
+          <span class="font-medium text-gray-600 dark:text-gray-300">
+            {{ tontine.tontineOwner?.personne?.prenom }} {{ tontine.tontineOwner?.personne?.nom }}
+          </span>
+          · {{ tontine.tontineOwner?.telephone }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 self-start">
+    <a [routerLink]="['/paiements']" [queryParams]="{ tontineId: tontineId }"
+      class="flex items-center gap-1.5 rounded-lg border border-brand-300 bg-white px-3 py-2 text-sm font-medium text-brand-600 shadow-theme-xs hover:bg-brand-50 dark:border-brand-700 dark:bg-gray-800 dark:text-brand-400 dark:hover:bg-white/[0.05]">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+      </svg>
+      Paiements
+    </a>
+    <a routerLink="/tontines"
+      class="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-white/[0.05]">
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+      </svg>
+      Retour
+    </a>
+  </div>
+</div>
+
+<!-- ─── KPIs ───────────────────────────────────────────────── -->
+<div class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+
+  <!-- Membres actifs -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-900/20">
+      <svg class="h-5 w-5 text-brand-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+      </svg>
+    </div>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Membres actifs</p>
+    <h4 class="mt-1 text-2xl font-bold text-gray-800 dark:text-white/90">{{ nombreMembresActifs }}</h4>
+    <p class="mt-0.5 text-xs text-gray-400">sur {{ membres.length }} demande{{ membres.length > 1 ? 's' : '' }}</p>
+  </div>
+
+  <!-- Périodes -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-900/20">
+      <svg class="h-5 w-5 text-orange-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5" />
+      </svg>
+    </div>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Périodes</p>
+    <h4 class="mt-1 text-2xl font-bold text-gray-800 dark:text-white/90">{{ periodes.length }}</h4>
+    <p class="mt-0.5 text-xs text-gray-400">{{ getPeriodiciteLabel(tontine.periodicite) }}</p>
+  </div>
+
+  <!-- Mise par période -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-success-50 dark:bg-success-900/20">
+      <svg class="h-5 w-5 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Mise par membre</p>
+    <h4 class="mt-1 text-xl font-bold text-gray-800 dark:text-white/90">
+      {{ tontine.montant | number:'1.0-0' }}
+      <span class="text-sm font-normal text-gray-400">FCFA</span>
+    </h4>
+    <p class="mt-0.5 text-xs text-success-600">Cagnotte : {{ (tontine.montant * nombreMembresActifs) | number:'1.0-0' }} FCFA</p>
+  </div>
+
+  <!-- Dates -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-900/20">
+      <svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <p class="text-xs text-gray-500 dark:text-gray-400">Durée</p>
+    <p class="mt-1 text-sm font-semibold text-gray-700 dark:text-gray-300">
+      {{ tontine.dateDebut | date:'dd/MM/yyyy' }}
+    </p>
+    <p class="mt-0.5 text-xs text-gray-400">→ {{ tontine.dateFin | date:'dd/MM/yyyy' }}</p>
+  </div>
+
+</div>
+
+<!-- ─── Description ──────────────────────────────────────── -->
+@if (tontine.description) {
+  <div class="mb-6 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-400">{{ tontine.description }}</p>
+  </div>
+}
+
+<!-- ─── Zone principale : onglets + panel versements ──────── -->
+<div class="flex gap-5" [class.flex-col]="!isPanelOpen" [class.items-start]="isPanelOpen">
+
+  <!-- ── Colonne gauche : onglets ─────────────────────────── -->
+  <div class="min-w-0 flex-1">
+
+    <!-- Barre d'onglets -->
+    <div class="mb-4 flex gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1 dark:border-gray-800 dark:bg-white/[0.03]">
+      <button (click)="setTab('membres')"
+        class="flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all"
+        [class]="activeTab === 'membres'
+          ? 'bg-white shadow-sm text-brand-600 dark:bg-gray-800 dark:text-brand-400'
+          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+        </svg>
+        Membres
+        <span class="rounded-full px-1.5 py-0.5 text-xs"
+          [class]="activeTab === 'membres' ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'">
+          {{ membres.length }}
+        </span>
+      </button>
+
+      <button (click)="setTab('periodes')"
+        class="flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all"
+        [class]="activeTab === 'periodes'
+          ? 'bg-white shadow-sm text-brand-600 dark:bg-gray-800 dark:text-brand-400'
+          : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5" />
+        </svg>
+        Périodes de versement
+        <span class="rounded-full px-1.5 py-0.5 text-xs"
+          [class]="activeTab === 'periodes' ? 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'">
+          {{ periodes.length }}
+        </span>
+      </button>
+    </div>
+
+    <!-- ══ Onglet MEMBRES ══════════════════════════════════ -->
+    @if (activeTab === 'membres') {
+      <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        @if (membres.length === 0) {
+          <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+            <svg class="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+            </svg>
+            <p class="text-sm">Aucun membre pour cette tontine</p>
+          </div>
+        } @else {
+          <div class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+            @for (demande of membres; track demande.idDemandeAdhesion) {
+              <div class="flex items-center justify-between px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  <!-- Avatar initiales -->
+                  <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-semibold text-teal-700 dark:bg-teal-900/30 dark:text-teal-300">
+                    {{ getMembreInitiales(demande) }}
+                  </div>
+                  <div>
+                    <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {{ getMembreNom(demande) }}
+                    </p>
+                    <p class="text-xs text-gray-400 dark:text-gray-500">
+                      {{ demande.telephone }}
+                      @if (demande.dateEnvoi) {
+                        · Invité le {{ demande.dateEnvoi | date:'dd/MM/yyyy' }}
+                      }
+                    </p>
+                  </div>
+                </div>
+                <app-badge [color]="getStatutBadge(demande.statut)" size="sm">
+                  {{ getStatutLabel(demande.statut) }}
+                </app-badge>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ══ Onglet PÉRIODES ════════════════════════════════ -->
+    @if (activeTab === 'periodes') {
+      <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        @if (periodes.length === 0) {
+          <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+            <svg class="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5" />
+            </svg>
+            <p class="text-sm">Aucune période de versement</p>
+          </div>
+        } @else {
+          <div class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+            @for (periode of periodes; track periode.idTontinePeriodeVersement) {
+              <button
+                (click)="openVersements(periode)"
+                class="group flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+                [class.bg-brand-50]="selectedPeriode?.idTontinePeriodeVersement === periode.idTontinePeriodeVersement"
+                [class.dark:bg-brand-900\/10]="selectedPeriode?.idTontinePeriodeVersement === periode.idTontinePeriodeVersement">
+
+                <div class="flex items-center gap-4">
+                  <!-- Numéro de période -->
+                  <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm font-bold"
+                    [class]="getPeriodeStatut(periode) === 'active'
+                      ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+                      : getPeriodeStatut(periode) === 'future'
+                      ? 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'
+                      : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'">
+                    {{ $index + 1 }}
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                      {{ periode.libelle || ('Période ' + ($index + 1)) }}
+                    </p>
+                    <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
+                      {{ periode.dateDebut | date:'dd/MM/yyyy' }}
+                      → {{ periode.dateFin | date:'dd/MM/yyyy' }}
+                    </p>
+                    @if (periode.beneficiaire) {
+                      <p class="mt-0.5 text-xs text-purple-600 dark:text-purple-400">
+                        Bénéficiaire : {{ periode.beneficiaire?.personne?.prenom }} {{ periode.beneficiaire?.personne?.nom }}
+                      </p>
+                    }
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <app-badge [color]="getPeriodeBadge(periode)" size="sm">
+                    {{ getPeriodeStatutLabel(periode) }}
+                  </app-badge>
+                  <!-- Flèche -->
+                  <svg class="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform group-hover:translate-x-0.5"
+                    fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                </div>
+
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+  <!-- ── Fin colonne gauche ───────────────────────────────── -->
+
+
+  <!-- ── Panel versements (slide-in) ─────────────────────── -->
+  @if (isPanelOpen && selectedPeriode) {
+    <div class="w-full lg:w-[420px] flex-shrink-0 rounded-2xl border border-brand-200 bg-white dark:border-brand-800 dark:bg-white/[0.03] panel-slide-in">
+
+      <!-- En-tête panel -->
+      <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-white/[0.05]">
+        <div>
+          <h4 class="text-sm font-semibold text-gray-800 dark:text-white/90">
+            {{ selectedPeriode.libelle || 'Versements de la période' }}
+          </h4>
+          <p class="mt-0.5 text-xs text-gray-400">
+            {{ selectedPeriode.dateDebut | date:'dd/MM/yyyy' }} → {{ selectedPeriode.dateFin | date:'dd/MM/yyyy' }}
+          </p>
+        </div>
+        <button (click)="closePanel()"
+          class="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Stats de collecte -->
+      @if (!isLoadingVersements) {
+        <div class="border-b border-gray-100 px-5 py-3 dark:border-white/[0.05]">
+          <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span>Collecté</span>
+            <span class="font-semibold text-gray-700 dark:text-gray-300">
+              {{ totalVerse | number:'1.0-0' }} FCFA
+            </span>
+          </div>
+          @if (montantAttenduPeriode > 0) {
+            <div class="mt-1.5 flex items-center justify-between text-xs text-gray-400">
+              <span>Attendu</span>
+              <span>{{ montantAttenduPeriode | number:'1.0-0' }} FCFA</span>
+            </div>
+            <div class="mt-2 h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+              <div class="h-1.5 rounded-full bg-success-500 transition-all duration-700"
+                [style.width]="tauxCollecte + '%'"></div>
+            </div>
+            <p class="mt-1 text-right text-xs font-medium text-success-600">{{ tauxCollecte }}%</p>
+          }
+        </div>
+      }
+
+      <!-- Corps : liste versements -->
+      <div class="max-h-[500px] overflow-y-auto">
+        @if (isLoadingVersements) {
+          <div class="flex justify-center py-10">
+            <svg class="h-6 w-6 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </div>
+        } @else if (versements.length === 0) {
+          <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+            <svg class="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75" />
+            </svg>
+            <p class="text-sm">Aucun versement pour cette période</p>
+          </div>
+        } @else {
+          <div class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+            @for (v of versements; track v.idTontineVersement) {
+              <div class="px-5 py-3.5">
+                <div class="flex items-start justify-between gap-3">
+                  <!-- Membre -->
+                  <div class="flex items-center gap-2.5">
+                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-xs font-semibold text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                      {{ getMembreInitiales(v.membre) }}
+                    </div>
+                    <div>
+                      <p class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                        {{ getMembreNom(v.membre) }}
+                      </p>
+                      <p class="text-xs text-gray-400">
+                        {{ v.dateVersement | date:'dd/MM/yyyy' }}
+                        @if (v.fournisseur) { · {{ v.fournisseur }} }
+                      </p>
+                    </div>
+                  </div>
+                  <!-- Montant -->
+                  <p class="flex-shrink-0 text-sm font-bold text-success-600 dark:text-success-400">
+                    +{{ v.montant | number:'1.0-0' }} FCFA
+                  </p>
+                </div>
+                @if (v.typeVersement || v.telephone) {
+                  <div class="mt-1.5 flex flex-wrap gap-2 pl-10">
+                    @if (v.typeVersement) {
+                      <span class="rounded-md bg-gray-100 px-1.5 py-0.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+                        {{ v.typeVersement }}
+                      </span>
+                    }
+                    @if (v.telephone) {
+                      <span class="text-xs text-gray-400">{{ v.telephone }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+      <!-- Pied panel -->
+      <div class="border-t border-gray-100 px-5 py-3 dark:border-white/[0.05]">
+        <p class="text-xs text-gray-400">
+          {{ versements.length }} versement{{ versements.length > 1 ? 's' : '' }} enregistré{{ versements.length > 1 ? 's' : '' }}
+        </p>
+      </div>
+    </div>
+  }
+  <!-- ── Fin panel ────────────────────────────────────────── -->
+
+</div>
+<!-- ─── Fin zone principale ───────────────────────────────── -->
+
+}

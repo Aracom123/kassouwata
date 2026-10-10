@@ -1,0 +1,18 @@
+[Unit]
+Description=Kassouwata Backend Spring Boot
+After=network.target mysqld.service
+
+[Service]
+User=beit
+WorkingDirectory=/home/beit/public_html/kassouwata.beit.ne/backend
+ExecStart=/usr/bin/java -jar \
+  -Dspring.profiles.active=prod \
+  /home/beit/public_html/kassouwata.beit.ne/backend/kassouwata.jar
+SuccessExitStatus=143
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/beit/public_html/kassouwata.beit.ne/backend/kassouwata.log
+StandardError=append:/home/beit/public_html/kassouwata.beit.ne/backend/error.log
+
+[Install]
+WantedBy=multi-user.target

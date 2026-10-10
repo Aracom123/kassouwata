@@ -1,0 +1,368 @@
+<!-- ─── Notification ──────────────────────────────────── -->
+@if (showAlert) {
+  <div class="mb-4 transition-all duration-300">
+    <app-alert [variant]="variantType" title="" [message]="alertMessage" [showLink]="false" linkHref="/" linkText="" />
+  </div>
+}
+
+<!-- ─── En-tête ───────────────────────────────────────── -->
+<div class="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Paiements</h2>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Transactions Mobile Money des commandes et des tontines — {{ totalElements }} résultat(s)
+    </p>
+  </div>
+  <button (click)="rafraichir()"
+    class="inline-flex h-[42px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.05]">
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+    Actualiser
+  </button>
+</div>
+
+<!-- ─── Indicateurs ───────────────────────────────────── -->
+<div class="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+  <!-- Encaissé -->
+  <button (click)="toggleStatut('REUSSIE')"
+    class="flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition-all hover:shadow-sm
+      {{ filtres.statut === 'REUSSIE' ? 'border-success-400 bg-success-50 dark:border-success-700 dark:bg-success-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-success-100 dark:bg-success-900/30">
+      <svg class="h-4 w-4 text-success-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ (stats?.montantEncaisse ?? 0) | number:'1.0-0' }} <span class="text-xs font-medium text-gray-400">FCFA</span></span>
+    <span class="text-xs font-medium text-success-600 dark:text-success-400">Encaissé · {{ stat('REUSSIE', 'nombre') }} paiement(s)</span>
+  </button>
+
+  <!-- En attente -->
+  <button (click)="toggleStatut('EN_ATTENTE')"
+    class="flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition-all hover:shadow-sm
+      {{ filtres.statut === 'EN_ATTENTE' ? 'border-warning-400 bg-warning-50 dark:border-warning-700 dark:bg-warning-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-warning-100 dark:bg-warning-900/30">
+      <svg class="h-4 w-4 text-warning-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ stat('EN_ATTENTE', 'nombre') }}</span>
+    <span class="text-xs font-medium text-warning-600 dark:text-warning-400">En attente · {{ stat('EN_ATTENTE', 'montant') | number:'1.0-0' }} FCFA</span>
+  </button>
+
+  <!-- Échouées -->
+  <button (click)="toggleStatut('ECHOUEE')"
+    class="flex flex-col items-start rounded-2xl border px-4 py-3 text-left transition-all hover:shadow-sm
+      {{ filtres.statut === 'ECHOUEE' ? 'border-error-400 bg-error-50 dark:border-error-700 dark:bg-error-900/20' : 'border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]' }}">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-error-100 dark:bg-error-900/30">
+      <svg class="h-4 w-4 text-error-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">{{ stat('ECHOUEE', 'nombre') }}</span>
+    <span class="text-xs font-medium text-error-600 dark:text-error-400">Échouées</span>
+  </button>
+
+  <!-- Taux de réussite -->
+  <div class="flex flex-col items-start rounded-2xl border border-gray-200 bg-white px-4 py-3 dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div class="mb-1 flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+      <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+      </svg>
+    </div>
+    <span class="text-xl font-bold text-gray-800 dark:text-white/90">
+      {{ stats?.tauxReussite != null ? (stats.tauxReussite | number:'1.0-1') + ' %' : '—' }}
+    </span>
+    <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Taux de réussite (réussies / traitées)</span>
+  </div>
+</div>
+
+<!-- ─── Encaissements par fournisseur et par type ─────── -->
+@if (stats?.parFournisseur?.length || stats?.parTypeOperation?.length) {
+  <div class="mb-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Encaissements par fournisseur</h3>
+      <div class="space-y-3">
+        @for (f of stats.parFournisseur; track f.fournisseur) {
+          <div>
+            <div class="mb-1 flex items-center justify-between text-sm">
+              <span class="font-medium text-gray-700 dark:text-gray-300">{{ libelleFournisseur(f.fournisseur) }}</span>
+              <span class="text-gray-500 dark:text-gray-400">{{ f.montant | number:'1.0-0' }} FCFA · {{ f.nombre }}</span>
+            </div>
+            <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+              <div class="h-2 rounded-full bg-brand-500" [style.width.%]="part(f.montant)"></div>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-sm text-gray-400">Aucun encaissement pour le moment</p>
+        }
+      </div>
+    </div>
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-white/[0.05] dark:bg-white/[0.03]">
+      <h3 class="mb-4 text-sm font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Encaissements par type</h3>
+      <div class="space-y-3">
+        @for (t of stats.parTypeOperation; track t.typeOperation) {
+          <div>
+            <div class="mb-1 flex items-center justify-between text-sm">
+              <span class="font-medium text-gray-700 dark:text-gray-300">{{ t.typeOperation === 'TONTINE' ? 'Cotisations de tontine' : 'Commandes' }}</span>
+              <span class="text-gray-500 dark:text-gray-400">{{ t.montant | number:'1.0-0' }} FCFA · {{ t.nombre }}</span>
+            </div>
+            <div class="h-2 w-full rounded-full bg-gray-100 dark:bg-gray-800">
+              <div class="h-2 rounded-full {{ t.typeOperation === 'TONTINE' ? 'bg-purple-500' : 'bg-teal-500' }}" [style.width.%]="part(t.montant)"></div>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-sm text-gray-400">Aucun encaissement pour le moment</p>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ─── Filtre commande / tontine venant d'une autre page ─ -->
+@if (filtres.commandeId || filtres.tontineId) {
+  <div class="mb-4 flex items-center gap-2">
+    <span class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-medium text-brand-700 dark:bg-brand-900/20 dark:text-brand-400">
+      @if (filtres.commandeId) { Commande #{{ filtres.commandeId }} }
+      @if (filtres.tontineId) { Tontine #{{ filtres.tontineId }} }
+      <button (click)="retirerFiltreObjet()" class="hover:text-brand-900" title="Retirer ce filtre">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </span>
+  </div>
+}
+
+<!-- ─── Barre de filtres ──────────────────────────────── -->
+<div class="mb-4 rounded-2xl border border-gray-200 bg-white px-5 py-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+  <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div class="relative flex-1">
+        <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+        </span>
+        <input type="text" [value]="filtres.recherche ?? ''" (input)="onSearch($any($event.target).value)"
+          placeholder="Rechercher par référence (CMD-…, TON-…) ou téléphone…"
+          class="h-[42px] w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-10 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30" />
+      </div>
+      <select [value]="filtres.statut ?? ''" (change)="setFiltre('statut', $any($event.target).value)"
+        class="h-[42px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+        <option value="">Tous les statuts</option>
+        @for (s of statuts; track s.value) { <option [value]="s.value">{{ s.label }}</option> }
+      </select>
+      <select [value]="filtres.fournisseur ?? ''" (change)="setFiltre('fournisseur', $any($event.target).value)"
+        class="h-[42px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+        <option value="">Tous les fournisseurs</option>
+        @for (f of fournisseurs; track f.value) { <option [value]="f.value">{{ f.label }}</option> }
+      </select>
+      <select [value]="filtres.typeOperation ?? ''" (change)="setFiltre('typeOperation', $any($event.target).value)"
+        class="h-[42px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+        <option value="">Commandes et tontines</option>
+        @for (t of typesOperation; track t.value) { <option [value]="t.value">{{ t.label }}</option> }
+      </select>
+    </div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div class="flex items-center gap-2">
+        <label class="whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">Du :</label>
+        <input type="date" [value]="filtres.dateDebut ?? ''" (change)="setFiltre('dateDebut', $any($event.target).value)"
+          class="h-[38px] rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="whitespace-nowrap text-xs font-medium text-gray-500 dark:text-gray-400">Au :</label>
+        <input type="date" [value]="filtres.dateFin ?? ''" (change)="setFiltre('dateFin', $any($event.target).value)"
+          class="h-[38px] rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90" />
+      </div>
+      @if (hasActiveFilters) {
+        <button (click)="clearFilters()"
+          class="ml-auto flex h-[38px] items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-600 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-white/[0.05]">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+          Effacer les filtres
+        </button>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- ─── Tableau ───────────────────────────────────────── -->
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+  @if (isLoading) {
+    <div class="flex items-center justify-center py-16">
+      <svg class="h-8 w-8 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-b border-gray-100 dark:border-white/[0.05]">
+            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Référence / Date</th>
+            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Objet</th>
+            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Payeur</th>
+            <th class="px-4 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Fournisseur</th>
+            <th class="px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Montant (FCFA)</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Statut</th>
+            <th class="px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
+          @for (t of transactions; track t.idTransaction) {
+            <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+              <td class="px-5 py-4">
+                <span class="block font-mono text-xs font-bold text-brand-600 dark:text-brand-400">{{ t.referenceExterne || ('#' + t.idTransaction) }}</span>
+                <span class="mt-0.5 block text-xs text-gray-400">{{ t.dateTransaction | date:'dd/MM/yyyy HH:mm' }}</span>
+              </td>
+              <td class="px-4 py-4">
+                @if (t.typeOperation === 'TONTINE' && t.tontineId) {
+                  <a [routerLink]="['/tontines', encode(t.tontineId)]"
+                    class="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 hover:underline dark:bg-purple-900/20 dark:text-purple-400">
+                    Tontine #{{ t.tontineId }}
+                  </a>
+                } @else if (t.commandeId) {
+                  <a [routerLink]="['/commandes', encode(t.commandeId)]"
+                    class="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 hover:underline dark:bg-teal-900/20 dark:text-teal-400">
+                    Commande #{{ t.commandeId }}
+                  </a>
+                } @else {
+                  <span class="text-sm text-gray-400">—</span>
+                }
+              </td>
+              <td class="px-4 py-4">
+                <span class="block text-sm font-medium text-gray-800 dark:text-white/90">{{ t.payeurNom || t.nomPayeur || t.payeurTelephone || '—' }}</span>
+                @if (t.telephonePayeur) {
+                  <span class="block text-xs text-gray-400">Débité : {{ t.telephonePayeur }}</span>
+                } @else if (t.numeroCarteMasque) {
+                  <span class="block font-mono text-xs text-gray-400">{{ t.numeroCarteMasque }}</span>
+                }
+              </td>
+              <td class="px-4 py-4 text-sm text-gray-700 dark:text-gray-300">{{ libelleFournisseur(t.fournisseur) }}</td>
+              <td class="px-4 py-4 text-right text-sm font-semibold text-gray-800 dark:text-white/90">{{ t.montant | number:'1.0-0' }}</td>
+              <td class="px-4 py-4 text-center">
+                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ classeStatut(t.statut) }}">
+                  {{ libelleStatut(t.statut) }}
+                </span>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex items-center justify-center gap-2">
+                  @if (t.statut === 'EN_ATTENTE' && t.referenceExterne) {
+                    <button (click)="verifier(t)" [disabled]="enVerification.has(t.referenceExterne)"
+                      class="inline-flex items-center gap-1 rounded-lg border border-warning-300 px-2.5 py-1.5 text-xs font-medium text-warning-700 hover:bg-warning-50 disabled:opacity-50 dark:border-warning-700 dark:text-warning-400 dark:hover:bg-warning-900/20"
+                      title="Interroger l'agrégateur">
+                      {{ enVerification.has(t.referenceExterne) ? 'Vérification…' : 'Vérifier' }}
+                    </button>
+                  }
+                  <button (click)="ouvrirDetail(t)"
+                    class="inline-flex items-center rounded-lg border border-gray-300 px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]">
+                    Détail
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="px-5 py-16 text-center text-sm text-gray-400">Aucune transaction ne correspond à ces critères</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row dark:border-white/[0.05]">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Page {{ page + 1 }} sur {{ totalPages }}</span>
+        <div class="flex items-center gap-1">
+          <button (click)="goToPage(page - 1)" [disabled]="page === 0"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+          </button>
+          @for (p of pages; track p) {
+            @if (p >= page - 2 && p <= page + 2) {
+              <button (click)="goToPage(p)"
+                [class.bg-brand-500]="p === page" [class.text-white]="p === page" [class.border-brand-500]="p === page"
+                class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300">
+                {{ p + 1 }}
+              </button>
+            }
+          }
+          <button (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-gray-700 dark:text-gray-400">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- ─── Modal Détail ──────────────────────────────────── -->
+<app-modal [isOpen]="isDetailOpen" (close)="fermerDetail()" className="max-w-[720px] m-4">
+  <div class="no-scrollbar relative max-h-[85vh] w-full max-w-[720px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+    @if (detail) {
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h4 class="text-xl font-semibold text-gray-800 dark:text-white/90">Détail du paiement</h4>
+          <p class="mt-1 font-mono text-sm text-brand-600 dark:text-brand-400">{{ detail.referenceExterne || ('#' + detail.idTransaction) }}</p>
+        </div>
+        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {{ classeStatut(detail.statut) }}">
+          {{ libelleStatut(detail.statut) }}
+        </span>
+      </div>
+
+      <dl class="mb-5 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Montant</dt><dd class="text-sm font-semibold text-gray-800 dark:text-white/90">{{ detail.montant | number:'1.0-0' }} FCFA</dd></div>
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Fournisseur</dt><dd class="text-sm text-gray-800 dark:text-white/90">{{ libelleFournisseur(detail.fournisseur) }}</dd></div>
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Date</dt><dd class="text-sm text-gray-800 dark:text-white/90">{{ detail.dateTransaction | date:'dd/MM/yyyy HH:mm:ss' }}</dd></div>
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">{{ detail.numeroCarteMasque ? 'Carte' : 'Numéro débité' }}</dt><dd class="font-mono text-sm text-gray-800 dark:text-white/90">{{ detail.numeroCarteMasque || detail.telephonePayeur || '—' }}</dd></div>
+        @if (detail.nomPayeur) {
+          <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Nom saisi</dt><dd class="text-sm text-gray-800 dark:text-white/90">{{ detail.nomPayeur }}</dd></div>
+        }
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Payeur</dt><dd class="text-sm text-gray-800 dark:text-white/90">{{ detail.payeurNom || detail.payeurTelephone || '—' }}</dd></div>
+        <div class="flex justify-between gap-3">
+          <dt class="text-sm text-gray-500">Objet</dt>
+          <dd class="text-sm text-gray-800 dark:text-white/90">
+            @if (detail.typeOperation === 'TONTINE') { Tontine #{{ detail.tontineId }} @if (detail.periodeVersementId) { · période #{{ detail.periodeVersementId }} } }
+            @else if (detail.commandeId) { Commande #{{ detail.commandeId }} }
+            @else { — }
+          </dd>
+        </div>
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Dernière vérification</dt><dd class="text-sm text-gray-800 dark:text-white/90">{{ detail.dateVerification ? (detail.dateVerification | date:'dd/MM/yyyy HH:mm:ss') : '—' }}</dd></div>
+        <div class="flex justify-between gap-3"><dt class="text-sm text-gray-500">Créée par</dt><dd class="text-sm text-gray-800 dark:text-white/90">{{ detail.creePar || '—' }}</dd></div>
+      </dl>
+
+      @if (isLoadingDetail) {
+        <p class="text-sm text-gray-400">Chargement des réponses de l'agrégateur…</p>
+      } @else {
+        <div class="space-y-4">
+          <div>
+            <h5 class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">Réponse à l'envoi du paiement</h5>
+            <pre class="max-h-48 overflow-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700 dark:bg-white/[0.03] dark:text-gray-300">{{ formatJson(detail.reponseAgregateur) }}</pre>
+          </div>
+          <div>
+            <h5 class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-400">Dernière vérification de statut</h5>
+            <pre class="max-h-48 overflow-auto rounded-lg bg-gray-50 p-3 text-xs text-gray-700 dark:bg-white/[0.03] dark:text-gray-300">{{ formatJson(detail.reponseVerification) }}</pre>
+          </div>
+        </div>
+      }
+
+      <div class="mt-6 flex items-center justify-end gap-3">
+        @if (detail.statut === 'EN_ATTENTE' && detail.referenceExterne) {
+          <button (click)="verifier(detail)" [disabled]="enVerification.has(detail.referenceExterne)"
+            class="rounded-lg border border-warning-300 px-4 py-2.5 text-sm font-medium text-warning-700 hover:bg-warning-50 disabled:opacity-50 dark:border-warning-700 dark:text-warning-400">
+            {{ enVerification.has(detail.referenceExterne) ? 'Vérification…' : 'Vérifier le statut' }}
+          </button>
+        }
+        <button (click)="fermerDetail()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Fermer
+        </button>
+      </div>
+    }
+  </div>
+</app-modal>

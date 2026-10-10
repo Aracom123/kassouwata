@@ -1,0 +1,232 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+
+import '../bloc/auth_bloc.dart';
+
+class OtpVerificationPage extends StatefulWidget {
+  final String telephone;
+  final String password;
+
+  const OtpVerificationPage({
+    super.key,
+    required this.telephone,
+    required this.password,
+  });
+
+  @override
+  State<OtpVerificationPage> createState() => _OtpVerificationPageState();
+}
+
+class _OtpVerificationPageState extends State<OtpVerificationPage> {
+  final List<TextEditingController> _controllers =
+      List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+
+  // Compte à rebours 30 minutes
+  int _secondsLeft = 1800;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() => _secondsLeft = 1800);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_secondsLeft <= 0) {
+        _timer?.cancel();
+      } else {
+        setState(() => _secondsLeft--);
+      }
+    });
+  }
+
+  String get _timerLabel {
+    final m = _secondsLeft ~/ 60;
+    final s = _secondsLeft % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  String get _otpCode => _controllers.map((c) => c.text).join();
+
+  void _submit() {
+    final code = _otpCode;
+    if (code.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Veuillez saisir les 6 chiffres du code.'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    }
+    context.read<AuthBloc>().add(OtpVerifyRequested(
+          telephone: widget.telephone,
+          code: code,
+        ));
+  }
+
+  void _resend() {
+    context
+        .read<AuthBloc>()
+        .add(ResendOtpRequested(telephone: widget.telephone));
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    for (final c in _controllers) c.dispose();
+    for (final f in _focusNodes) f.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is OtpVerified) {
+          // OTP validé → rediriger vers la page de connexion
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Numéro vérifié ! Connectez-vous pour continuer.'),
+            backgroundColor: Colors.green,
+          ));
+          context.go('/login');
+        } else if (state is Authenticated) {
+          context.go('/home');
+        } else if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(state.message),
+            backgroundColor: Colors.red,
+          ));
+          for (final c in _controllers) c.clear();
+          _focusNodes.first.requestFocus();
+        } else if (state is OtpRequired) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Nouveau code envoyé !'),
+            backgroundColor: Colors.green,
+          ));
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+        return Scaffold(
+          appBar: AppBar(title: const Text('Vérification')),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Icon(Icons.verified_outlined, size: 52, color: primary),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Confirmez votre numéro',
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Un code à 6 chiffres a été envoyé au\n${widget.telephone}',
+                    style: const TextStyle(color: Colors.grey, fontSize: 15),
+                  ),
+                  const SizedBox(height: 36),
+
+                  // Cases OTP
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List.generate(6, (i) => _buildOtpBox(i, primary)),
+                  ),
+
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : _submit,
+                      child: isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text('Vérifier'),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Compte à rebours + renvoi
+                  Center(
+                    child: _secondsLeft > 0
+                        ? RichText(
+                            text: TextSpan(
+                              style: const TextStyle(color: Colors.grey),
+                              children: [
+                                const TextSpan(text: 'Renvoyer dans '),
+                                TextSpan(
+                                  text: _timerLabel,
+                                  style: TextStyle(
+                                      color: primary,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          )
+                        : TextButton(
+                            onPressed: isLoading ? null : _resend,
+                            child: const Text('Renvoyer le code'),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOtpBox(int index, Color primary) {
+    return SizedBox(
+      width: 48,
+      height: 56,
+      child: TextFormField(
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        maxLength: 1,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        decoration: InputDecoration(
+          counterText: '',
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: primary, width: 2),
+          ),
+        ),
+        onChanged: (val) {
+          if (val.isNotEmpty && index < 5) {
+            _focusNodes[index + 1].requestFocus();
+          } else if (val.isEmpty && index > 0) {
+            _focusNodes[index - 1].requestFocus();
+          }
+          if (_otpCode.length == 6) _submit();
+        },
+      ),
+    );
+  }
+}

@@ -1,0 +1,35 @@
+services:
+
+  kassouwata-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kassouwata-api
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    environment:
+      # Base de données — pointe vers le PostgreSQL du VPS (hors Docker)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://host.docker.internal:5432/kassouwata_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SERVER_PORT: 8082
+      UPLOAD_PATH: /app/images/
+    volumes:
+      # Persistance des images uploadées
+      - kassouwata_images:/app/images
+    extra_hosts:
+      # Permet au container d'accéder au PostgreSQL de l'hôte
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/api/nosUsers/list?size=1&page=0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  kassouwata_images:
+    driver: local

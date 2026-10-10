@@ -1,0 +1,7 @@
+curl -v -X POST https://kassouwata.beit.ne/api/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{"login":"98793380","password":"password"}'
+
+curl -s -o /dev/null -w "%{http_code}" -X POST https://kassouwata.beit.ne/api/authenticate \
+  -H "Content-Type: application/json" \
+  -d '{"login":"98793380","password":"password"}'

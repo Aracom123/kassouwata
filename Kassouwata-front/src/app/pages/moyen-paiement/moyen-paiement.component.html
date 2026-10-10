@@ -1,0 +1,216 @@
+<!-- ─── Notification ──────────────────────────────────── -->
+@if (showAlert) {
+  <div class="mb-4 transition-all duration-300">
+    <app-alert [variant]="variantType" title="" [message]="alertMessage" [showLink]="false" linkHref="/" linkText="" />
+  </div>
+}
+
+<!-- ─── En-tête ───────────────────────────────────────── -->
+<div class="mb-5">
+  <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">Moyens de paiement</h2>
+  <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+    Catégories et fournisseurs proposés dans les applications. Un moyen n'apparaît sur le téléphone que s'il est actif,
+    que sa catégorie est active et que son code KomiPay est renseigné.
+  </p>
+</div>
+
+@if (isLoading) {
+  <div class="flex items-center justify-center py-16">
+    <svg class="h-8 w-8 animate-spin text-brand-500" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+  </div>
+} @else {
+  <div class="space-y-5">
+    @for (c of categories; track c.idCategoriePaiement) {
+      <div class="rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]"
+        [class.opacity-60]="!c.actif">
+        <!-- En-tête catégorie -->
+        <div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/[0.05]">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">{{ c.libelle }}</h3>
+              <span class="rounded-full bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">{{ c.code }}</span>
+              @if (!c.actif) {
+                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/5 dark:text-white/70">Désactivée</span>
+              }
+            </div>
+            @if (c.description) {
+              <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">{{ c.description }}</p>
+            }
+          </div>
+          <div class="flex items-center gap-2">
+            <button (click)="ouvrirCategorie(c)"
+              class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]">
+              Modifier
+            </button>
+            <button (click)="basculerCategorie(c)"
+              class="rounded-lg border px-3 py-1.5 text-xs font-medium
+                {{ c.actif ? 'border-error-300 text-error-600 hover:bg-error-50 dark:border-error-700 dark:text-error-400' : 'border-success-300 text-success-700 hover:bg-success-50 dark:border-success-700 dark:text-success-400' }}">
+              {{ c.actif ? 'Désactiver' : 'Activer' }}
+            </button>
+            <button (click)="ouvrirCreation(c.code)"
+              class="rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-600">
+              + Ajouter
+            </button>
+          </div>
+        </div>
+
+        <!-- Moyens de la catégorie -->
+        <div class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
+          @for (m of c.moyens; track m.idMoyenPaiement) {
+            <div class="flex flex-col rounded-xl border p-4
+              {{ estVisible(m, c) ? 'border-gray-200 dark:border-white/[0.08]' : 'border-dashed border-gray-300 dark:border-gray-700' }}">
+              <div class="flex items-start gap-3">
+                <!-- Logo -->
+                <label class="group relative flex h-14 w-14 flex-shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800"
+                  title="Changer le logo">
+                  @if (urlLogo(m); as url) {
+                    <img [src]="url" [alt]="m.libelle" class="h-full w-full object-contain p-1" />
+                  } @else {
+                    <span class="text-lg font-bold text-gray-400">{{ m.libelle.charAt(0) }}</span>
+                  }
+                  <span class="absolute inset-0 flex items-center justify-center bg-black/50 text-[10px] font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                    {{ logosEnCours.has(m.idMoyenPaiement) ? '…' : 'Logo' }}
+                  </span>
+                  <input type="file" accept="image/*" class="hidden" (change)="onLogoChoisi(m, $event)" />
+                </label>
+
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-semibold text-gray-800 dark:text-white/90">{{ m.libelle }}</p>
+                  <p class="font-mono text-xs text-gray-400">{{ m.code }}</p>
+                  <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    KomiPay :
+                    @if (m.codeAgregateur) {
+                      <span class="font-mono text-gray-700 dark:text-gray-300">{{ m.codeAgregateur }}</span>
+                    } @else {
+                      <span class="font-medium text-warning-600 dark:text-warning-400">à renseigner</span>
+                    }
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between gap-2">
+                @if (estVisible(m, c)) {
+                  <span class="inline-flex items-center rounded-full bg-success-50 px-2.5 py-0.5 text-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-500">Visible dans l'application</span>
+                } @else {
+                  <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/5 dark:text-white/70">Non proposé</span>
+                }
+                <div class="flex items-center gap-1.5">
+                  <button (click)="ouvrirModification(m)"
+                    class="rounded-lg border border-gray-300 px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.05]">
+                    Modifier
+                  </button>
+                  <button (click)="basculerMoyen(m)"
+                    class="rounded-lg border px-2.5 py-1 text-xs font-medium
+                      {{ m.actif ? 'border-error-300 text-error-600 hover:bg-error-50 dark:border-error-700 dark:text-error-400' : 'border-success-300 text-success-700 hover:bg-success-50 dark:border-success-700 dark:text-success-400' }}">
+                    {{ m.actif ? 'Désactiver' : 'Activer' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <p class="text-sm text-gray-400">Aucun moyen de paiement dans cette catégorie.</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ─── Modal moyen de paiement ───────────────────────── -->
+<app-modal [isOpen]="isModalOpen" (close)="fermerModal()" className="max-w-[520px] m-4">
+  <div class="no-scrollbar relative w-full max-w-[520px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+    <h4 class="mb-5 text-xl font-semibold text-gray-800 dark:text-white/90">
+      {{ formulaire.idMoyenPaiement ? 'Modifier le moyen de paiement' : 'Nouveau moyen de paiement' }}
+    </h4>
+    <div class="space-y-4">
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Code interne <span class="text-error-500">*</span></label>
+        <input type="text" [(ngModel)]="formulaire.code" [disabled]="!!formulaire.idMoyenPaiement" placeholder="ex. ZAMANI_CASH"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 font-mono text-sm text-gray-700 disabled:bg-gray-50 disabled:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+        <p class="mt-1 text-xs text-gray-400">Non modifiable une fois créé : il est enregistré dans l'historique des transactions.</p>
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Libellé <span class="text-error-500">*</span></label>
+        <input type="text" [(ngModel)]="formulaire.libelle" placeholder="ex. Zamani Cash"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Catégorie</label>
+        <select [(ngModel)]="formulaire.categorieCode"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90">
+          @for (c of categories; track c.code) { <option [value]="c.code">{{ c.libelle }}</option> }
+        </select>
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Code KomiPay (champ « mobile_money »)</label>
+        <input type="text" [(ngModel)]="formulaire.codeAgregateur" placeholder="ex. airtel_money, nita_transfert, bank_card"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 font-mono text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+        <p class="mt-1 text-xs text-gray-400">Obligatoire pour activer le moyen de paiement.</p>
+      </div>
+      <div class="flex items-center gap-6">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Ordre d'affichage</label>
+          <input type="number" min="0" [(ngModel)]="formulaire.ordre"
+            class="w-28 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+        </div>
+        <label class="mt-6 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+          <input type="checkbox" [(ngModel)]="formulaire.actif" class="h-4 w-4 rounded border-gray-300" />
+          Actif
+        </label>
+      </div>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" (click)="fermerModal()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <button type="button" (click)="enregistrer()" [disabled]="isSaving"
+          class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50">
+          {{ isSaving ? 'Enregistrement…' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</app-modal>
+
+<!-- ─── Modal catégorie ───────────────────────────────── -->
+<app-modal [isOpen]="isCategorieModalOpen" (close)="fermerCategorie()" className="max-w-[480px] m-4">
+  <div class="no-scrollbar relative w-full max-w-[480px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+    <h4 class="mb-5 text-xl font-semibold text-gray-800 dark:text-white/90">Modifier la catégorie</h4>
+    <div class="space-y-4">
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Libellé</label>
+        <input type="text" [(ngModel)]="formCategorie.libelle"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+      </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Description</label>
+        <input type="text" [(ngModel)]="formCategorie.description"
+          class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+      </div>
+      <div class="flex items-center gap-6">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Ordre d'affichage</label>
+          <input type="number" min="0" [(ngModel)]="formCategorie.ordre"
+            class="w-28 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90" />
+        </div>
+        <label class="mt-6 flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+          <input type="checkbox" [(ngModel)]="formCategorie.actif" class="h-4 w-4 rounded border-gray-300" />
+          Active
+        </label>
+      </div>
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button type="button" (click)="fermerCategorie()"
+          class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+          Annuler
+        </button>
+        <button type="button" (click)="enregistrerCategorie()"
+          class="rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600">
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</app-modal>

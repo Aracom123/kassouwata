@@ -1,0 +1,50 @@
+/* ── Galerie principale ─────────────────────────────────── */
+.gallery-main {
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+
+.gallery-main:hover {
+  transform: scale(1.01);
+}
+
+.thumbnail {
+  transition: all 0.15s ease;
+}
+
+.thumbnail:hover {
+  transform: scale(1.05);
+}
+
+/* ── Lightbox ───────────────────────────────────────────── */
+.lightbox-overlay {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.lightbox-img-wrap {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 80vh;
+  object-fit: contain;
+  transition: transform 0.15s ease;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ── Zoom badge ─────────────────────────────────────────── */
+.zoom-badge {
+  backdrop-filter: blur(8px);
+}

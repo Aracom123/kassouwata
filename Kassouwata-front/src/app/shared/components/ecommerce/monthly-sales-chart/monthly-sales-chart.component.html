@@ -1,0 +1,36 @@
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
+  <div class="mb-4 flex items-center justify-between">
+    <div>
+      <h3 class="text-base font-semibold text-gray-800 dark:text-white/90">Évolution mensuelle</h3>
+      <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">CA et commissions par mois (année en cours)</p>
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="flex h-[220px] items-center justify-center">
+      <svg class="h-6 w-6 animate-spin text-brand-400" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+    </div>
+  } @else {
+    <div class="max-w-full overflow-x-auto custom-scrollbar">
+      <div class="-ml-5 min-w-[600px] xl:min-w-full pl-2">
+        <apx-chart
+          [series]="series"
+          [chart]="chart"
+          [xaxis]="xaxis"
+          [plotOptions]="plotOptions"
+          [dataLabels]="dataLabels"
+          [stroke]="stroke"
+          [legend]="legend"
+          [yaxis]="yaxis"
+          [grid]="grid"
+          [fill]="fill"
+          [tooltip]="tooltip"
+          [colors]="colors"
+        ></apx-chart>
+      </div>
+    </div>
+  }
+</div>
