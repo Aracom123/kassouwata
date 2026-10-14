@@ -55,6 +55,7 @@ import '../../features/tontine/domain/repositories/tontine_repository.dart'
     as _i344;
 import '../../features/tontine/presentation/bloc/tontine_bloc.dart' as _i806;
 import '../network/dio_client.dart' as _i667;
+import '../../features/paiement/data/paiement_service.dart' as _i_paie;
 import '../storage/secure_storage.dart' as _i619;
 import 'injection.dart' as _i464;
 
@@ -133,6 +134,8 @@ extension GetItInjectableX on _i174.GetIt {
         ));
     gh.factory<_i28.ProductBloc>(
         () => _i28.ProductBloc(gh<_i963.ProductRepository>()));
+    gh.lazySingleton<_i_paie.PaiementService>(
+        () => _i_paie.PaiementService(gh<_i667.DioClient>()));
     return this;
   }
 }

@@ -39,6 +39,14 @@ class ApiEndpoints {
   static String commandesByBoutique(int idBoutique) => '/api/nosCommandes/byBoutique/$idBoutique';
   static String updateCommandeStatut(int id) => '/api/nosCommandes/$id/statut';
 
+  // Paiements en ligne (agrégateur : Mobile Money, STA, carte)
+  static const String moyensPaiement = '/api/payment/moyens';
+  static const String payer = '/api/payment/mobile-money';
+  static String statutPaiement(String reference) =>
+      '/api/payment/statut/$reference';
+  static String resumePaiementCommande(int idCommande) =>
+      '/api/payment/commande/$idCommande/resume';
+
   // Tontines
   static const String tontines = '/api/nosTontines/list';
   static const String saveTontine = '/api/nosTontines/save';

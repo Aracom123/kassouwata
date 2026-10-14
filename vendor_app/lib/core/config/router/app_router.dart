@@ -18,6 +18,8 @@ import '../../../features/orders/domain/entities/order_entity.dart';
 import '../../../features/orders/presentation/bloc/order_bloc.dart';
 import '../../../features/orders/presentation/pages/order_detail_page.dart';
 import '../../../features/orders/presentation/pages/orders_page.dart';
+import '../../../features/paiement/data/paiement_models.dart';
+import '../../../features/paiement/presentation/pages/paiement_page.dart';
 import '../../../features/products/domain/entities/product_entity.dart';
 import '../../../features/products/presentation/pages/add_product_page.dart';
 import '../../../features/products/presentation/pages/products_page.dart';
@@ -180,6 +182,14 @@ class AppRouter {
             isOwner: extra['isOwner'] as bool? ?? true,
           );
         },
+      ),
+
+      // --- Paiement en ligne (Mobile Money, transfert, carte) ---
+      GoRoute(
+        path: '/paiement',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (_, state) =>
+            PaiementPage(args: state.extra as PaiementArgs),
       ),
 
       // --- App principale (avec barre de navigation) ---

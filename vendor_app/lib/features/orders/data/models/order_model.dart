@@ -145,6 +145,7 @@ class ReglementModel {
   final String? modePaiement;
   final String? moyenPaiement;
   final double montant;
+  final String? statut;
 
   const ReglementModel({
     required this.idTransaction,
@@ -152,6 +153,7 @@ class ReglementModel {
     this.modePaiement,
     this.moyenPaiement,
     required this.montant,
+    this.statut,
   });
 
   factory ReglementModel.fromJson(Map<String, dynamic> json) {
@@ -168,6 +170,7 @@ class ReglementModel {
       modePaiement: json['modePaiement'] as String?,
       moyenPaiement: json['moyenPaiement'] as String?,
       montant: (json['montant'] as num?)?.toDouble() ?? 0.0,
+      statut: (json['statut'] as String?)?.toUpperCase(),
     );
   }
 
@@ -177,5 +180,6 @@ class ReglementModel {
         modePaiement: modePaiement,
         moyenPaiement: moyenPaiement,
         montant: montant,
+        statut: statut,
       );
 }

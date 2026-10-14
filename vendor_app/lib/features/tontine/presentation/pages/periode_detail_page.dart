@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
-import '../../../../features/auth/data/datasources/auth_local_datasource.dart';
+import '../../../paiement/data/paiement_models.dart';
 import '../../domain/entities/tontine_entity.dart';
 import '../bloc/tontine_bloc.dart';
 
@@ -30,24 +29,6 @@ class PeriodeDetailPage extends StatefulWidget {
 class _PeriodeDetailPageState extends State<PeriodeDetailPage> {
   final _dateFormat = DateFormat('dd/MM/yyyy');
   final _dateTimeFormat = DateFormat('dd/MM/yyyy HH:mm');
-  String? _userTelephone;
-  String? _userIdUser;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
-
-  Future<void> _loadUser() async {
-    final user = await getIt<AuthLocalDataSource>().getCachedUser();
-    if (mounted) {
-      setState(() {
-        _userTelephone = user?.telephone;
-        _userIdUser = user?.idUser;
-      });
-    }
-  }
 
   void _confirmDelete(BuildContext ctx) {
     showDialog(
@@ -76,22 +57,31 @@ class _PeriodeDetailPageState extends State<PeriodeDetailPage> {
     );
   }
 
-  void _showCotiserSheet(BuildContext ctx) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _CotiserSheet(
-        tontine: widget.tontine,
-        periode: widget.periode,
-        userTelephone: _userTelephone!,
-        userIdUser: _userIdUser,
-        bloc: ctx.read<TontineBloc>(),
+  /// Ouvre l'écran de paiement en ligne (Mobile Money, transfert, carte)
+  /// pour la cotisation de cette période, puis recharge les versements.
+  Future<void> _cotiser(BuildContext ctx) async {
+    final bloc = ctx.read<TontineBloc>();
+    final messenger = ScaffoldMessenger.of(ctx);
+    final issue = await ctx.push<IssuePaiement>(
+      '/paiement',
+      extra: PaiementArgs(
+        typeOperation: TypeOperationPaiement.tontine,
+        operationId: widget.tontine.idTontine,
+        periodeVersementId: widget.periode.idTontinePeriodeVersement,
+        montant: widget.tontine.montant,
+        titre: 'Cotisation — ${widget.tontine.libelle}',
+        sousTitre: widget.periode.libelle,
       ),
     );
+    if (issue == null) return;
+    bloc.add(LoadVersements(widget.periode.idTontinePeriodeVersement));
+    if (issue.reussi) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Cotisation payée avec succès !')));
+    } else if (issue.statut == StatutPaiement.enAttente) {
+      messenger.showSnackBar(const SnackBar(
+          content: Text('Paiement en cours de confirmation…')));
+    }
   }
 
   @override
@@ -152,8 +142,7 @@ class _PeriodeDetailPageState extends State<PeriodeDetailPage> {
               ],
             ),
             floatingActionButton: FloatingActionButton.extended(
-              onPressed:
-                  _userTelephone != null ? () => _showCotiserSheet(ctx) : null,
+              onPressed: () => _cotiser(ctx),
               icon: const Icon(Icons.add_circle_outline),
               label: const Text('Cotiser'),
             ),
@@ -379,7 +368,8 @@ class _PeriodeDetailPageState extends State<PeriodeDetailPage> {
                 Text(
                   [
                     if (v.nomPorteur != null) v.nomPorteur!,
-                    if (v.numeroCarte != null) '•••• ${v.numeroCarte}',
+                    if (v.numeroCarte != null)
+                      '•••• ${_quatreDerniers(v.numeroCarte!)}',
                   ].join('  '),
                   style: theme.textTheme.labelSmall
                       ?.copyWith(color: Colors.grey.shade600),
@@ -421,6 +411,13 @@ class _PeriodeDetailPageState extends State<PeriodeDetailPage> {
     );
   }
 
+  /// Le backend renvoie la carte masquée (« **** **** **** 1234 ») :
+  /// on n'affiche que les 4 derniers chiffres.
+  String _quatreDerniers(String carte) {
+    final chiffres = carte.replaceAll(RegExp(r'[^0-9]'), '');
+    return chiffres.length <= 4 ? chiffres : chiffres.substring(chiffres.length - 4);
+  }
+
   String _initials(String name) {
     final parts = name.trim().split(' ');
     if (parts.length >= 2) {
@@ -460,326 +457,5 @@ class _PeriodeDetailPageState extends State<PeriodeDetailPage> {
       return 'Fin : ${_dateFormat.format(p.dateFin!)}';
     }
     return '';
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Bottom sheet de cotisation
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _CotiserSheet extends StatefulWidget {
-  final TontineEntity tontine;
-  final PeriodeVersementEntity periode;
-  final String userTelephone;
-  final String? userIdUser;
-  final TontineBloc bloc;
-
-  const _CotiserSheet({
-    required this.tontine,
-    required this.periode,
-    required this.userTelephone,
-    required this.userIdUser,
-    required this.bloc,
-  });
-
-  @override
-  State<_CotiserSheet> createState() => _CotiserSheetState();
-}
-
-class _CotiserSheetState extends State<_CotiserSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _numeroCompteCtrl = TextEditingController();
-  final _numCarteCtrl = TextEditingController();
-  final _nomPorteurCtrl = TextEditingController();
-
-  TontineTypePaiement? _type;
-  TontineFournisseur? _fournisseur;
-
-  @override
-  void dispose() {
-    _numeroCompteCtrl.dispose();
-    _numCarteCtrl.dispose();
-    _nomPorteurCtrl.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    if (_type == null || _fournisseur == null) return;
-    if (!_formKey.currentState!.validate()) return;
-
-    widget.bloc.add(CreateVersement(
-      idPeriode: widget.periode.idTontinePeriodeVersement,
-      montant: widget.tontine.montant,
-      telephone: widget.userTelephone,
-      idUser: widget.userIdUser,
-      typePaiement: _type!,
-      fournisseur: _fournisseur!,
-      numeroCompte: _type == TontineTypePaiement.mobileMoney
-          ? _numeroCompteCtrl.text.trim()
-          : null,
-      numeroCarte: _type == TontineTypePaiement.cartePaiement
-          ? _numCarteCtrl.text.trim()
-          : null,
-      nomPorteur: _type == TontineTypePaiement.cartePaiement
-          ? _nomPorteurCtrl.text.trim()
-          : null,
-    ));
-    Navigator.of(context).pop();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final fmt = NumberFormat('#,###', 'fr_FR');
-
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Handle
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text('Envoyer ma cotisation',
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text('Période : ${widget.periode.libelle}',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey.shade600)),
-              const SizedBox(height: 16),
-
-              // Montant fixe
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.payments_outlined,
-                        color: theme.colorScheme.primary),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Montant à payer',
-                            style: theme.textTheme.labelSmall
-                                ?.copyWith(color: Colors.grey.shade600)),
-                        Text(
-                          '${fmt.format(widget.tontine.montant)} F',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Choix du type
-              Text('Moyen de paiement',
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(color: Colors.grey.shade700)),
-              const SizedBox(height: 8),
-              Row(
-                children: TontineTypePaiement.values.map((t) {
-                  final selected = _type == t;
-                  final isMobile = t == TontineTypePaiement.mobileMoney;
-                  return Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.only(right: isMobile ? 8 : 0),
-                      child: _TypeCard(
-                        label: t.label,
-                        icon: isMobile
-                            ? Icons.phone_android_outlined
-                            : Icons.credit_card_outlined,
-                        selected: selected,
-                        onTap: () => setState(() {
-                          _type = t;
-                          _fournisseur = null;
-                        }),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-
-              // Fournisseurs
-              if (_type != null) ...[
-                const SizedBox(height: 16),
-                Text('Fournisseur',
-                    style: theme.textTheme.labelMedium
-                        ?.copyWith(color: Colors.grey.shade700)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: fournisseursFor(_type!).map((f) {
-                    final selected = _fournisseur == f;
-                    return ChoiceChip(
-                      label: Text(f.label),
-                      selected: selected,
-                      onSelected: (_) =>
-                          setState(() => _fournisseur = f),
-                      selectedColor:
-                          theme.colorScheme.primaryContainer,
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: selected
-                            ? theme.colorScheme.primary
-                            : null,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-
-              // Formulaire spécifique
-              if (_fournisseur != null) ...[
-                const SizedBox(height: 16),
-                if (_type == TontineTypePaiement.mobileMoney)
-                  TextFormField(
-                    controller: _numeroCompteCtrl,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: 'Numéro ${_fournisseur!.label} *',
-                      hintText: 'Ex: +22790000000',
-                      border: const OutlineInputBorder(),
-                      prefixIcon:
-                          const Icon(Icons.phone_android_outlined),
-                    ),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Requis' : null,
-                  )
-                else ...[
-                  TextFormField(
-                    controller: _nomPorteurCtrl,
-                    textCapitalization: TextCapitalization.words,
-                    decoration: const InputDecoration(
-                      labelText: 'Nom du porteur *',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person_outline),
-                    ),
-                    validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Requis' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _numCarteCtrl,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(4),
-                    ],
-                    decoration: const InputDecoration(
-                      labelText: '4 derniers chiffres de la carte *',
-                      hintText: 'Ex: 4242',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.credit_card_outlined),
-                      prefixText: '•••• ',
-                    ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Requis';
-                      if (v.trim().length != 4) return '4 chiffres requis';
-                      return null;
-                    },
-                  ),
-                ],
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  icon: const Icon(Icons.send_outlined),
-                  label: const Text('Confirmer la cotisation'),
-                  onPressed: _submit,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TypeCard extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _TypeCard({
-    required this.label,
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color =
-        selected ? theme.colorScheme.primary : Colors.grey.shade400;
-    final bg = selected
-        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.5)
-        : Colors.grey.shade50;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected
-                ? theme.colorScheme.primary
-                : Colors.grey.shade300,
-            width: selected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 28, color: color),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight:
-                    selected ? FontWeight.bold : FontWeight.normal,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

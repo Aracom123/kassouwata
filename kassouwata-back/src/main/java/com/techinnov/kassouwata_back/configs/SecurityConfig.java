@@ -58,9 +58,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     "/",
+                    "/error",
                     "/api/authenticate",
                     "/getPW/*",
-                    "/api/payment/token",
                     "/api/payment/logos/**",
                     "/api/nosUsers/register",
                     "/api/nosUsers/send-otp",
@@ -76,6 +76,8 @@ public class SecurityConfig {
                 ).permitAll()
                 // Consultation des paiements (back-office) : administrateurs uniquement
                 .requestMatchers("/api/payment/admin/**").hasRole("ADMIN")
+                // Jeton de l'agrégateur : jamais exposé publiquement (test réservé aux administrateurs)
+                .requestMatchers("/api/payment/token").hasRole("ADMIN")
                 // Dashboard et endpoints backoffice : accès pour tout utilisateur authentifié avec un token valide
                 .requestMatchers("/api/nosDashboards/**").authenticated()
                 .requestMatchers("/api/nosCommandes/**").authenticated()

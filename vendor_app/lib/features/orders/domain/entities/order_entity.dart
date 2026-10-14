@@ -91,6 +91,9 @@ class ReglementEntity extends Equatable {
   final String? modePaiement;
   final String? moyenPaiement;
   final double montant;
+  /// Paiement en ligne : EN_ATTENTE | REUSSIE | ECHOUEE.
+  /// null pour les anciens règlements saisis manuellement (considérés payés).
+  final String? statut;
 
   const ReglementEntity({
     required this.idTransaction,
@@ -98,8 +101,13 @@ class ReglementEntity extends Equatable {
     this.modePaiement,
     this.moyenPaiement,
     required this.montant,
+    this.statut,
   });
 
+  bool get estReussi => statut == null || statut == 'REUSSIE';
+  bool get estEnAttente => statut == 'EN_ATTENTE';
+  bool get estEchoue => statut == 'ECHOUEE';
+
   @override
-  List<Object?> get props => [idTransaction];
+  List<Object?> get props => [idTransaction, statut];
 }

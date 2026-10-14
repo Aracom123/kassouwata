@@ -42,8 +42,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isPrePaye = _order.moyenPaiement != null &&
-        _order.moyenPaiement!.toUpperCase() != 'CASH_LIVRAISON';
+    // Onglet Règlements : commandes prépayées, payées en ligne,
+    // ou ayant déjà au moins un règlement.
+    final moyen = _order.moyenPaiement?.toUpperCase();
+    final isPrePaye = _order.versements.isNotEmpty ||
+        _order.typeVente?.toUpperCase() == 'PREPAYE' ||
+        (moyen != null && moyen != 'CASH_LIVRAISON' && moyen != 'ESPECES');
     final tabCount = isPrePaye ? 2 : 1;
 
     return DefaultTabController(
@@ -307,12 +311,16 @@ class _ActionBar extends StatelessWidget {
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 String _labelMoyenPaiement(String s) => switch (s.toUpperCase()) {
-      'CASH_LIVRAISON' => 'Cash à la livraison',
+      'CASH_LIVRAISON' || 'ESPECES' => 'Espèces à la livraison',
+      'EN_LIGNE' => 'Paiement en ligne',
       'MOBILE_MONEY' => 'Mobile Money',
+      'STA' => 'Transfert d\'argent',
       'CARTE' => 'Carte bancaire',
       'AIRTEL_MONEY' => 'Airtel Money',
       'MOOV_MONEY' => 'Moov Money',
-      'NITA' => 'Nita',
+      'ZAMANI_CASH' => 'Zamani Cash',
+      'NITA' => 'MyNita',
+      'AMANA' => 'Amana',
       'AMANATA' => 'Amanata',
       'VISA' => 'Visa',
       'MASTERCARD' => 'Mastercard',
@@ -619,6 +627,11 @@ class _ReglementTile extends StatelessWidget {
     final label = reglement.moyenPaiement != null
         ? _labelMoyenPaiement(reglement.moyenPaiement!)
         : _labelMoyenPaiement(reglement.modePaiement ?? '');
+    final (statutLabel, statutColor, statutIcon) = reglement.estEnAttente
+        ? ('En attente', Colors.orange.shade700, Icons.hourglass_top)
+        : reglement.estEchoue
+            ? ('Échoué', Colors.red.shade700, Icons.cancel_outlined)
+            : ('Réussi', Colors.green.shade700, Icons.check_circle_outline);
 
     return Card(
       child: Padding(
@@ -628,11 +641,10 @@ class _ReglementTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
+                color: statutColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.receipt_outlined,
-                  size: 18, color: AppColors.primary),
+              child: Icon(statutIcon, size: 18, color: statutColor),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -651,6 +663,22 @@ class _ReglementTile extends StatelessWidget {
                       style: theme.textTheme.labelSmall
                           ?.copyWith(color: AppColors.grey400),
                     ),
+                  if (reglement.statut != null) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: statutColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(statutLabel,
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: statutColor)),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -658,7 +686,11 @@ class _ReglementTile extends StatelessWidget {
               '${NumberFormat('#,###', 'fr_FR').format(reglement.montant)} F',
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppColors.primary,
+                color: reglement.estEchoue
+                    ? AppColors.grey400
+                    : AppColors.primary,
+                decoration:
+                    reglement.estEchoue ? TextDecoration.lineThrough : null,
               ),
             ),
           ],
@@ -726,7 +758,10 @@ class _TotalReglements extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final total = versements.fold(0.0, (sum, v) => sum + v.montant);
+    // Seuls les règlements réussis (ou anciens règlements manuels) comptent
+    final reussis = versements.where((v) => v.estReussi).toList();
+    final total = reussis.fold(0.0, (sum, v) => sum + v.montant);
+    final enAttente = versements.where((v) => v.estEnAttente).length;
     return Card(
       color: AppColors.primary.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
@@ -748,7 +783,8 @@ class _TotalReglements extends StatelessWidget {
                       ?.copyWith(color: AppColors.grey600),
                 ),
                 Text(
-                  '${versements.length} versement${versements.length > 1 ? 's' : ''}',
+                  '${reussis.length} versement${reussis.length > 1 ? 's' : ''}'
+                  '${enAttente > 0 ? ' · $enAttente en attente' : ''}',
                   style: theme.textTheme.labelSmall
                       ?.copyWith(color: AppColors.grey400),
                 ),
