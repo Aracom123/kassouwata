@@ -4,6 +4,7 @@ package com.techinnov.kassouwata_back.entitites;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.techinnov.kassouwata_back.enums.UserStatus;
 
 import jakarta.persistence.CascadeType;
@@ -33,6 +34,7 @@ public class User extends Auditable<String>{
 	// @Column(unique=true)
     // private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(nullable = false, unique = true)

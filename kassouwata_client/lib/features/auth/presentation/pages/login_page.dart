@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../bloc/auth_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../vendeur/vendeur_session.dart';
 
 class LoginPage extends StatefulWidget {
   /// Si non null, on redirige vers cette page après connexion
@@ -53,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
           if (dest != null) {
             context.go(dest);
           } else {
-            context.go('/home');
+            _allerAccueil(context);
           }
         }
         if (state is AuthFailure) {
@@ -124,7 +126,23 @@ class _LoginPageState extends State<LoginPage> {
                         validator: (v) =>
                             (v == null || v.isEmpty) ? 'Requis' : null,
                       ),
-                      const SizedBox(height: 28),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () async {
+                            final tel = await context.push<String>(
+                              '/forgot-password',
+                              extra: _telCtrl.text.trim(),
+                            );
+                            if (tel != null && mounted) {
+                              _telCtrl.text = tel;
+                              _pwCtrl.clear();
+                            }
+                          },
+                          child: const Text('Mot de passe oublié ?'),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                       ElevatedButton(
                         onPressed: loading ? null : _submit,
                         child: loading
@@ -158,4 +176,10 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+}
+
+/// Accueil après connexion : un vendeur sans boutique est invité à la créer.
+Future<void> _allerAccueil(BuildContext context) async {
+  final dest = await getIt<VendeurSession>().accueilApresConnexion();
+  if (context.mounted) context.go(dest);
 }

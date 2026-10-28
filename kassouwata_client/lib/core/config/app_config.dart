@@ -8,4 +8,7 @@ class AppConfig {
 
   /// ID du profil CLIENT dans la base de données
   static const int clientProfileId = 3;
+
+  /// ID du profil VENDEUR dans la base de données
+  static const int vendeurProfileId = 2;
 }

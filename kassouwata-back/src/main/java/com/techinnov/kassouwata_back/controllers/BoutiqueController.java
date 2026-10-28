@@ -54,6 +54,12 @@ public class BoutiqueController {
 		return boutiqueRepository.findAll(page);
 	}
 
+	/** Boutiques visibles par le public (statut ACTIVE) — applications mobiles. */
+	@GetMapping("/actives")
+	public Page<Boutique> getBoutiquesActives(Pageable page){
+		return boutiqueRepository.findByStatus(BoutiqueStatus.ACTIVE, page);
+	}
+
 	/** Retourne la boutique d'un vendeur par son UUID utilisateur */
 	@GetMapping("/byVendeur/{idUser}")
 	public ResponseEntity<?> getBoutiqueByVendeur(@PathVariable String idUser) {
@@ -100,6 +106,16 @@ public class BoutiqueController {
 		User vendeur = userRepository.findById(uuid)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendeur introuvable avec l'id : " + vendeurId));
 
+		// Une seule boutique par vendeur
+		if (boutiqueRepository.getUserByVendeurID(uuid) != null) {
+			return ResponseEntity.status(HttpStatus.CONFLICT)
+					.body("Ce vendeur possède déjà une boutique.");
+		}
+
+		// Seul un administrateur peut créer une boutique directement active :
+		// une boutique créée depuis l'application attend la validation.
+		boolean admin = estAdmin();
+
 		Boutique boutique = new Boutique();
 		boutique.setLibelle(request.getLibelle());
 		boutique.setDescription(request.getDescription());
@@ -108,7 +124,7 @@ public class BoutiqueController {
 		boutique.setLongitude(request.getLongitude());
 		boutique.setVendeur(vendeur);
 		boutique.setStatus(
-			request.getStatus() != null
+			admin && request.getStatus() != null
 				? BoutiqueStatus.valueOf(request.getStatus())
 				: BoutiqueStatus.PENDING
 		);
@@ -122,6 +138,13 @@ public class BoutiqueController {
 	// 	return boutiqueRepository.findBoutiqueByLibelle(libelle);
 	// }
 	
+	/** L'utilisateur connecté est-il administrateur ? */
+	private boolean estAdmin() {
+		var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+		return auth != null && auth.getAuthorities().stream()
+				.anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+	}
+
 	//Update Boutique
 	@PutMapping("/update/{id}")
 	Boutique replaceBoutique(@RequestBody Boutique newBoutique, @PathVariable Long id) {
@@ -132,9 +155,18 @@ public class BoutiqueController {
         	boutique.setAdresse(newBoutique.getAdresse());
         	boutique.setLatitude(newBoutique.getLatitude());
         	boutique.setLongitude(newBoutique.getLongitude());
-        	boutique.setVendeur(newBoutique.getVendeur());
-        	boutique.setStatus(newBoutique.getStatus());
-        	boutique.setCommission(newBoutique.getCommission());
+        	// Le vendeur ne change pas (sauf si un vendeur valide est fourni)
+        	if (newBoutique.getVendeur() != null && newBoutique.getVendeur().getIdUser() != null) {
+        		userRepository.findById(newBoutique.getVendeur().getIdUser())
+        				.ifPresent(boutique::setVendeur);
+        	}
+        	// Statut et commission : réservés à l'administrateur. Une modification
+        	// depuis l'application vendeur ne doit ni réactiver ni remettre
+        	// « En attente » une boutique.
+        	if (estAdmin()) {
+        		if (newBoutique.getStatus() != null) boutique.setStatus(newBoutique.getStatus());
+        		boutique.setCommission(newBoutique.getCommission());
+        	}
           return boutiqueRepository.save(boutique);
         })
         .orElseGet(() -> {

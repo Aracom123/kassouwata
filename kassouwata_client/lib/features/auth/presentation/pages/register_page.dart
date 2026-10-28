@@ -21,6 +21,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _pwCtrl = TextEditingController();
   final _pw2Ctrl = TextEditingController();
   bool _obscure = true;
+  /// Profil choisi : false = client, true = vendeur
+  bool _vendeur = false;
 
   @override
   void dispose() {
@@ -39,6 +41,7 @@ class _RegisterPageState extends State<RegisterPage> {
           password: _pwCtrl.text,
           nom: _nomCtrl.text.trim(),
           prenom: _prenomCtrl.text.trim(),
+          vendeur: _vendeur,
         ));
   }
 
@@ -83,10 +86,42 @@ class _RegisterPageState extends State<RegisterPage> {
                           style: theme.textTheme.headlineSmall
                               ?.copyWith(fontWeight: FontWeight.bold)),
                       const SizedBox(height: 4),
-                      Text('Créez votre compte client gratuitement',
+                      Text('Créez votre compte gratuitement',
                           style: theme.textTheme.bodyMedium
                               ?.copyWith(color: Colors.grey)),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
+                      Text('Je suis…',
+                          style: theme.textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _ProfilChoix(
+                              icon: Icons.shopping_bag_outlined,
+                              titre: 'Client',
+                              detail: 'J\'achète et je participe aux tontines',
+                              selectionne: !_vendeur,
+                              onTap: loading
+                                  ? null
+                                  : () => setState(() => _vendeur = false),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _ProfilChoix(
+                              icon: Icons.storefront_outlined,
+                              titre: 'Vendeur',
+                              detail: 'Je vends aussi mes produits',
+                              selectionne: _vendeur,
+                              onTap: loading
+                                  ? null
+                                  : () => setState(() => _vendeur = true),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
                       TextFormField(
                         controller: _nomCtrl,
                         decoration: const InputDecoration(
@@ -190,6 +225,70 @@ class _RegisterPageState extends State<RegisterPage> {
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Carte de sélection du profil (client / vendeur).
+class _ProfilChoix extends StatelessWidget {
+  final IconData icon;
+  final String titre;
+  final String detail;
+  final bool selectionne;
+  final VoidCallback? onTap;
+
+  const _ProfilChoix({
+    required this.icon,
+    required this.titre,
+    required this.detail,
+    required this.selectionne,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: selectionne ? primary.withValues(alpha: 0.08) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selectionne ? primary : Colors.grey.shade300,
+            width: selectionne ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, color: selectionne ? primary : Colors.grey.shade600),
+                const Spacer(),
+                Icon(
+                  selectionne
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                  size: 18,
+                  color: selectionne ? primary : Colors.grey.shade400,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(titre,
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: selectionne ? primary : null)),
+            const SizedBox(height: 2),
+            Text(detail,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+          ],
         ),
       ),
     );

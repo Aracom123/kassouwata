@@ -59,9 +59,20 @@ public class TontineVersementController {
 	//Add TontineVersement
 	@PostMapping("/save")
 	public TontineVersement addTontineVersement(@RequestBody TontineVersement tontine) {
+		// Toujours rattacher la cotisation au compte du membre (par identifiant,
+		// sinon par numéro) : le numéro seul ne suffit pas à retrouver l'historique.
+		User membre = null;
 		if (tontine.getMembre() != null && tontine.getMembre().getIdUser() != null) {
-			userRepository.findById(tontine.getMembre().getIdUser())
-				.ifPresent(tontine::setMembre);
+			membre = userRepository.findById(tontine.getMembre().getIdUser()).orElse(null);
+		}
+		if (membre == null) {
+			String tel = tontine.getMembre() != null && tontine.getMembre().getTelephone() != null
+					? tontine.getMembre().getTelephone() : tontine.getTelephone();
+			if (tel != null) membre = userRepository.findByTelephone(tel.trim()).orElse(null);
+		}
+		tontine.setMembre(membre);
+		if (membre != null && tontine.getTelephone() == null) {
+			tontine.setTelephone(membre.getTelephone());
 		}
 		if (tontine.getTontinePeriodeVersement() != null
 				&& tontine.getTontinePeriodeVersement().getIdTontinePeriodeVersement() != null) {

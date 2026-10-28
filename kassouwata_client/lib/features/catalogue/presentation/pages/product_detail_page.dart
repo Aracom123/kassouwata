@@ -180,16 +180,34 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     context.read<CartBloc>().add(AddToCart(product));
                     final messenger = ScaffoldMessenger.of(context);
                     final router = GoRouter.of(context);
-                    messenger
-                      ..hideCurrentSnackBar()
-                      ..showSnackBar(SnackBar(
-                        content: Text('${product.libelle} ajouté au panier'),
-                        duration: const Duration(seconds: 4),
-                        action: SnackBarAction(
-                          label: 'Voir le panier',
-                          onPressed: () => router.push('/cart'),
-                        ),
-                      ));
+                    messenger.hideCurrentSnackBar();
+                    final barre = messenger.showSnackBar(SnackBar(
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 3),
+                      content: Row(
+                        children: [
+                          Expanded(
+                            child: Text('${product.libelle} ajouté au panier'),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                                foregroundColor: Colors.white),
+                            onPressed: () {
+                              messenger.hideCurrentSnackBar();
+                              router.push('/cart');
+                            },
+                            child: const Text('Voir le panier'),
+                          ),
+                        ],
+                      ),
+                    ));
+                    // Fermeture garantie après 3 s : les versions récentes de
+                    // Flutter laissent affichée une barre qui contient un bouton.
+                    var fermee = false;
+                    barre.closed.then((_) => fermee = true);
+                    Future.delayed(const Duration(seconds: 3), () {
+                      if (!fermee) barre.close();
+                    });
                   }
                 : null,
             icon: const Icon(Icons.add_shopping_cart),

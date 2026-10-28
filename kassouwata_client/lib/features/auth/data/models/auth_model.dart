@@ -16,6 +16,8 @@ class AuthResponseModel {
   final String? lieuNaissance;
   /// Date d'expiration du JWT (null si absent dans la réponse)
   final DateTime? expiresIn;
+  /// Boutique du vendeur (profil VENDEUR uniquement, null sinon)
+  final Map<String, dynamic>? boutique;
 
   const AuthResponseModel({
     required this.token,
@@ -31,6 +33,7 @@ class AuthResponseModel {
     this.dateNaissance,
     this.lieuNaissance,
     this.expiresIn,
+    this.boutique,
   });
 
   factory AuthResponseModel.fromJson(Map<String, dynamic> json) {
@@ -57,6 +60,9 @@ class AuthResponseModel {
       dateNaissance: json['dateNaissance'] as String?,
       lieuNaissance: json['lieuNaissance'] as String?,
       expiresIn: expiresIn,
+      boutique: json['boutique'] is Map
+          ? Map<String, dynamic>.from(json['boutique'] as Map)
+          : null,
     );
   }
 

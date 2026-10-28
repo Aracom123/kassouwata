@@ -63,6 +63,24 @@ import 'package:kassouwata_client/features/tontine/presentation/bloc/tontine_cli
 // Paiements en ligne
 import 'package:kassouwata_client/features/paiement/data/paiement_service.dart' as _i_paie;
 
+// Espace vendeur (« Ma boutique »)
+import 'package:shared_preferences/shared_preferences.dart' as _i_prefs;
+import 'package:kassouwata_client/vendeur/vendeur_session.dart' as _i_vs;
+import 'package:kassouwata_client/vendeur/features/auth/data/datasources/auth_local_datasource.dart' as _i_v_local;
+import 'package:kassouwata_client/vendeur/features/shop/data/datasources/shop_remote_datasource.dart' as _i_v_shop;
+import 'package:kassouwata_client/vendeur/features/onboarding/data/datasources/onboarding_datasource.dart' as _i_v_onb_ds;
+import 'package:kassouwata_client/vendeur/features/onboarding/presentation/bloc/onboarding_bloc.dart' as _i_v_onb_bloc;
+import 'package:kassouwata_client/vendeur/features/orders/data/datasources/order_remote_datasource.dart' as _i_v_ord_ds;
+import 'package:kassouwata_client/vendeur/features/orders/data/repositories/order_repository_impl.dart' as _i_v_ord_repo;
+import 'package:kassouwata_client/vendeur/features/orders/domain/repositories/order_repository.dart' as _i_v_ord_repo_abs;
+import 'package:kassouwata_client/vendeur/features/orders/presentation/bloc/order_bloc.dart' as _i_v_ord_bloc;
+import 'package:kassouwata_client/vendeur/features/products/data/datasources/product_remote_datasource.dart' as _i_v_prod_ds;
+import 'package:kassouwata_client/vendeur/features/products/data/repositories/product_repository_impl.dart' as _i_v_prod_repo;
+import 'package:kassouwata_client/vendeur/features/products/domain/repositories/product_repository.dart' as _i_v_prod_repo_abs;
+import 'package:kassouwata_client/vendeur/features/products/presentation/bloc/product_bloc.dart' as _i_v_prod_bloc;
+import 'package:kassouwata_client/vendeur/features/tontine/data/datasources/tontine_remote_datasource.dart' as _i_v_ton_ds;
+import 'package:kassouwata_client/vendeur/features/dashboard/presentation/bloc/dashboard_bloc.dart' as _i_v_dash;
+
 extension GetItInjectableX on _i174.GetIt {
   _i174.GetIt init({
     String? environment,
@@ -83,12 +101,25 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i1069.DioClient>(
         () => _i1069.DioClient(gh<_i429.SecureStorage>()));
 
+    // ── Espace vendeur : session (cache utilisateur + boutique) ──────────────
+    // SharedPreferences est enregistré dans configureDependencies().
+    gh.factory<_i_v_local.AuthLocalDataSource>(() =>
+        _i_v_local.AuthLocalDataSourceImpl(gh<_i_prefs.SharedPreferences>()));
+    gh.factory<_i_v_shop.ShopRemoteDataSource>(
+        () => _i_v_shop.ShopRemoteDataSourceImpl(gh<_i1069.DioClient>()));
+    gh.lazySingleton<_i_vs.VendeurSession>(() => _i_vs.VendeurSession(
+          gh<_i_v_local.AuthLocalDataSource>(),
+          gh<_i_v_shop.ShopRemoteDataSource>(),
+          gh<_i429.SecureStorage>(),
+        ));
+
     // ── Auth ──────────────────────────────────────────────────────────────────
     gh.factory<_i484.AuthRemoteDataSource>(
         () => _i484.AuthRemoteDataSourceImpl(gh<_i1069.DioClient>()));
     gh.factory<_i58.AuthRepository>(() => _i680.AuthRepositoryImpl(
           gh<_i484.AuthRemoteDataSource>(),
           gh<_i429.SecureStorage>(),
+          gh<_i_vs.VendeurSession>(),
         ));
     gh.factory<_i193.LoginUseCase>(
         () => _i193.LoginUseCase(gh<_i58.AuthRepository>()));
@@ -172,6 +203,36 @@ extension GetItInjectableX on _i174.GetIt {
     // ── Paiements en ligne ──────────────────────────────────────────────────
     gh.lazySingleton<_i_paie.PaiementService>(
         () => _i_paie.PaiementService(gh<_i1069.DioClient>()));
+
+    // ── Espace vendeur : boutique, produits, commandes reçues, tableau de bord
+    gh.factory<_i_v_onb_ds.OnboardingDataSource>(
+        () => _i_v_onb_ds.OnboardingDataSourceImpl(gh<_i1069.DioClient>()));
+    gh.factory<_i_v_onb_bloc.OnboardingBloc>(() => _i_v_onb_bloc.OnboardingBloc(
+          gh<_i_v_onb_ds.OnboardingDataSource>(),
+          gh<_i_v_local.AuthLocalDataSource>(),
+        ));
+    gh.factory<_i_v_ord_ds.OrderRemoteDataSource>(
+        () => _i_v_ord_ds.OrderRemoteDataSourceImpl(gh<_i1069.DioClient>()));
+    gh.factory<_i_v_ord_repo_abs.OrderRepository>(() =>
+        _i_v_ord_repo.OrderRepositoryImpl(gh<_i_v_ord_ds.OrderRemoteDataSource>()));
+    gh.factory<_i_v_ord_bloc.OrderBloc>(() =>
+        _i_v_ord_bloc.OrderBloc(gh<_i_v_ord_repo_abs.OrderRepository>()));
+    gh.factory<_i_v_prod_ds.ProductRemoteDataSource>(
+        () => _i_v_prod_ds.ProductRemoteDataSourceImpl(gh<_i1069.DioClient>()));
+    gh.factory<_i_v_prod_repo_abs.ProductRepository>(() =>
+        _i_v_prod_repo.ProductRepositoryImpl(
+            gh<_i_v_prod_ds.ProductRemoteDataSource>()));
+    gh.factory<_i_v_prod_bloc.ProductBloc>(() =>
+        _i_v_prod_bloc.ProductBloc(gh<_i_v_prod_repo_abs.ProductRepository>()));
+    gh.factory<_i_v_ton_ds.TontineRemoteDataSource>(
+        () => _i_v_ton_ds.TontineRemoteDataSourceImpl(gh<_i1069.DioClient>()));
+    gh.factory<_i_v_dash.DashboardBloc>(() => _i_v_dash.DashboardBloc(
+          gh<_i_v_ord_repo_abs.OrderRepository>(),
+          gh<_i_v_prod_ds.ProductRemoteDataSource>(),
+          gh<_i_ton_repo_abs.TontineClientRepository>(),
+          gh<_i_v_local.AuthLocalDataSource>(),
+          gh<_i429.SecureStorage>(),
+        ));
 
     return this;
   }

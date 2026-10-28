@@ -13,6 +13,8 @@ class AuthInterceptor extends Interceptor {
     '/api/nosUsers/register',
     '/api/nosUsers/send-otp',
     '/api/nosUsers/verify-otp',
+    '/api/nosUsers/forgot-password',
+    '/api/nosUsers/reset-password',
     '/api/nosUsers/saveClient',
   };
 

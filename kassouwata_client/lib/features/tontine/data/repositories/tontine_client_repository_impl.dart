@@ -15,8 +15,9 @@ class TontineClientRepositoryImpl implements TontineClientRepository {
   Future<Either<Failure, List<DemandeAdhesionEntity>>> getMyInvitations(
       String telephone) async {
     try {
-      final all = await _remote.getAllDemandes();
-      final mine = all.where((d) => d.telephone == telephone).toList();
+      // Rattachées au compte côté serveur : un changement de numéro ne fait
+      // plus perdre les invitations ni les tontines rejointes.
+      final mine = await _remote.getMesDemandes();
       return Right(mine);
     } on DioException catch (e) {
       return Left(ServerFailure(e.message ?? 'Erreur réseau'));

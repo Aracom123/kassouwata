@@ -97,6 +97,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
       nom: event.nom,
       prenom: event.prenom,
+      vendeur: event.vendeur,
     );
     result.fold(
       (f) => emit(AuthFailure(f.message)),
@@ -129,7 +130,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogout(
       LogoutRequested event, Emitter<AuthState> emit) async {
-    await _storage.clearAll();
+    await _authRepository.logout();
     emit(Unauthenticated());
   }
 

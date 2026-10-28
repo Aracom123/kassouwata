@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/di/injection.dart';
 import '../../../features/products/presentation/bloc/product_bloc.dart';
 import '../../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../../features/auth/presentation/pages/login_page.dart';
 import '../../../features/auth/presentation/pages/otp_verification_page.dart';
 import '../../../features/auth/presentation/pages/register_page.dart';
@@ -52,6 +53,11 @@ class AppRouter {
       GoRoute(
         path: '/register',
         builder: (_, __) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (_, state) =>
+            ForgotPasswordPage(telephone: state.extra as String?),
       ),
       GoRoute(
         path: '/otp-verify',

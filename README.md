@@ -10,12 +10,21 @@ Les clients achètent des produits (paiement en une fois ou par tranches), les v
 |---|---|---|
 | [`kassouwata-back/`](kassouwata-back) | API REST, paiements, tâches planifiées | Spring Boot 4 · Java 17 · PostgreSQL |
 | [`Kassouwata-front/`](Kassouwata-front) | Back office d'administration (profil ADMIN) | Angular 21 · Tailwind CSS |
-| [`kassouwata_client/`](kassouwata_client) | Application mobile client (profil CLIENT) | Flutter |
-| [`vendor_app/`](vendor_app) | Application mobile vendeur (profil VENDEUR) | Flutter |
+| [`kassouwata_client/`](kassouwata_client) | Application mobile unique (profils CLIENT et VENDEUR) | Flutter |
+| [`vendor_app/`](vendor_app) | Ancienne application vendeur — remplacée par l'application unique, conservée pour référence | Flutter |
 | `deploy-vps.sh` | Script de déploiement du backend (Docker) sur le VPS | Bash |
 | `GUIDE_BUILD_APK.md` | Signature et génération des APK Android | — |
 
 Profils : **ADMIN**, **VENDEUR**, **CLIENT**. Toute utilisation nécessite un compte et une authentification (JWT).
+
+### Application mobile unique
+
+Clients et vendeurs utilisent la même application (`kassouwata_client`). Le profil est choisi à l'inscription (« Client » ou « Vendeur ») et renvoyé à la connexion ; il décide des écrans affichés :
+
+- toutes les fonctionnalités (catalogue, boutiques, panier, commandes, tontines, paiement) sont ouvertes aux deux profils ;
+- la gestion de boutique (tableau de bord, produits, commandes reçues, paramètres de la boutique) est réservée au profil VENDEUR, via l'onglet **Ma boutique**. Un vendeur sans boutique est invité à la créer.
+
+Le code de l'espace vendeur est dans `kassouwata_client/lib/vendeur/` (point d'entrée `vendeur_session.dart`).
 
 ## Démarrage en local
 
@@ -56,7 +65,7 @@ npm start                   # http://localhost:4200, /api redirigé vers le back
 Prérequis : Flutter (Dart ≥ 3.3), Android SDK.
 
 ```bash
-cd kassouwata_client        # ou vendor_app
+cd kassouwata_client
 flutter pub get
 flutter run
 ```

@@ -66,5 +66,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Kassouwata utilise votre position pour situer votre boutique sur la carte.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Kassouwata accède à vos photos pour ajouter les images de vos produits.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Kassouwata utilise l’appareil photo pour photographier vos produits.</string>
 </dict>
 </plist>

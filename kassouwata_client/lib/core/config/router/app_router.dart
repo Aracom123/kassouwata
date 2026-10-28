@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
 import '../../../features/about/presentation/pages/about_page.dart';
 import '../../../features/about/presentation/pages/cgu_page.dart';
+import '../../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../../features/auth/presentation/pages/login_page.dart';
 import '../../../features/auth/presentation/pages/otp_verification_page.dart';
 import '../../../features/auth/presentation/pages/register_page.dart';
@@ -23,6 +25,7 @@ import '../../../features/orders/presentation/pages/order_detail_page.dart';
 import '../../../features/orders/presentation/pages/orders_page.dart';
 import '../../../features/profile/presentation/bloc/complete_profile_bloc.dart';
 import '../../../features/profile/presentation/pages/complete_profile_page.dart';
+import '../../../features/profile/presentation/pages/change_telephone_page.dart';
 import '../../../features/profile/presentation/pages/profile_page.dart';
 import '../../../features/tontine/domain/entities/demande_entity.dart';
 import '../../../features/tontine/presentation/pages/tontine_detail_page.dart';
@@ -30,6 +33,23 @@ import '../../../features/tontine/presentation/pages/tontine_list_page.dart';
 import '../../../features/tontine/presentation/pages/tontine_membre_detail_page.dart';
 import '../../../features/tontine/presentation/pages/tontine_periods_page.dart';
 import '../../../shell/main_shell.dart';
+
+// Espace vendeur (« Ma boutique ») — profil VENDEUR uniquement
+import '../../../vendeur/ma_boutique_page.dart';
+import '../../../vendeur/vendeur_session.dart';
+import '../../../vendeur/features/orders/domain/entities/order_entity.dart' as v_ord;
+import '../../../vendeur/features/orders/presentation/bloc/order_bloc.dart' as v_ord;
+import '../../../vendeur/features/orders/presentation/pages/order_detail_page.dart' as v_ord;
+import '../../../vendeur/features/orders/presentation/pages/orders_page.dart' as v_ord;
+import '../../../vendeur/features/products/domain/entities/product_entity.dart' as v_prod;
+import '../../../vendeur/features/products/presentation/bloc/product_bloc.dart' as v_prod;
+import '../../../vendeur/features/products/presentation/pages/add_product_page.dart' as v_prod;
+import '../../../vendeur/features/products/presentation/pages/products_page.dart' as v_prod;
+import '../../../vendeur/features/profile/presentation/pages/edit_boutique_page.dart';
+
+/// Les écrans de gestion de boutique ne sont accessibles qu'aux vendeurs.
+Future<String?> _reserveVendeur(BuildContext context, GoRouterState state) async =>
+    await getIt<VendeurSession>().estConnecteCommeVendeur() ? null : '/home';
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -45,6 +65,11 @@ final appRouter = GoRouter(
         final redirectTo = state.extra as String?;
         return LoginPage(redirectTo: redirectTo);
       },
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) =>
+          ForgotPasswordPage(telephone: state.extra as String?),
     ),
     GoRoute(
       path: '/register',
@@ -89,6 +114,10 @@ final appRouter = GoRouter(
       builder: (context, state) => const ProfilePage(),
     ),
     GoRoute(
+      path: '/changer-numero',
+      builder: (context, state) => const ChangeTelephonePage(),
+    ),
+    GoRoute(
       path: '/about',
       builder: (context, state) => const AboutPage(),
     ),
@@ -101,9 +130,67 @@ final appRouter = GoRouter(
       builder: (context, state) =>
           PaiementPage(args: state.extra as PaiementArgs),
     ),
+    // ── Espace vendeur : écrans plein écran ─────────────────────────────────
+    GoRoute(
+      path: '/creer-boutique',
+      redirect: _reserveVendeur,
+      builder: (context, state) => const CreerBoutiquePage(),
+    ),
+    GoRoute(
+      path: '/ma-boutique/produits',
+      redirect: _reserveVendeur,
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<v_prod.ProductBloc>(),
+        child: const v_prod.ProductsPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/ma-boutique/produits/ajout',
+      redirect: _reserveVendeur,
+      builder: (context, state) => const v_prod.AddProductPage(),
+    ),
+    GoRoute(
+      path: '/ma-boutique/produits/modifier',
+      redirect: _reserveVendeur,
+      builder: (context, state) => v_prod.AddProductPage(
+        product: state.extra as v_prod.ProductEntity?,
+      ),
+    ),
+    GoRoute(
+      path: '/ma-boutique/commandes',
+      redirect: _reserveVendeur,
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<v_ord.OrderBloc>(),
+        child: const v_ord.OrdersPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/ma-boutique/commandes/detail',
+      redirect: _reserveVendeur,
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>;
+        return BlocProvider(
+          create: (_) => getIt<v_ord.OrderBloc>(),
+          child: v_ord.OrderDetailPage(
+            order: extra['order'] as v_ord.OrderEntity,
+            idBoutique: extra['idBoutique'] as int,
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/ma-boutique/parametres',
+      redirect: _reserveVendeur,
+      builder: (context, state) => const EditBoutiquePage(),
+    ),
     ShellRoute(
       builder: (context, state, child) => MainShell(child: child),
       routes: [
+        GoRoute(
+          path: '/ma-boutique',
+          redirect: _reserveVendeur,
+          builder: (context, state) => const MaBoutiquePage(),
+        ),
         GoRoute(
           path: '/home',
           builder: (context, state) => const CataloguePage(),

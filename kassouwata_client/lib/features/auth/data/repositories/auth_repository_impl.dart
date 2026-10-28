@@ -2,18 +2,21 @@ import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import 'package:injectable/injectable.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
+import '../../../../vendeur/vendeur_session.dart';
 import '../datasources/auth_remote_datasource.dart';
 
 @Injectable(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remote;
   final SecureStorage _storage;
+  final VendeurSession _vendeur;
 
-  const AuthRepositoryImpl(this._remote, this._storage);
+  const AuthRepositoryImpl(this._remote, this._storage, this._vendeur);
 
   Failure _handleError(Object e) {
     if (e is DioException) {
@@ -99,6 +102,17 @@ class AuthRepositoryImpl implements AuthRepository {
       if (model.expiresIn != null) {
         await _storage.saveExpiresIn(model.expiresIn!);
       }
+      // Espace vendeur : cache de l'utilisateur et de sa boutique
+      await _vendeur.enregistrerConnexion(
+        idUser: user.idUser,
+        telephone: user.telephone,
+        profile: user.profile,
+        status: user.status,
+        nom: user.nom,
+        prenom: user.prenom,
+        email: user.email,
+        boutique: model.boutique,
+      );
       return Right(user);
     } catch (e) {
       return Left(_handleError(e));
@@ -111,10 +125,17 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String nom,
     required String prenom,
+    bool vendeur = false,
   }) async {
     try {
       final tel = await _remote.register(
-          telephone: telephone, password: password, nom: nom, prenom: prenom);
+          telephone: telephone,
+          password: password,
+          nom: nom,
+          prenom: prenom,
+          profileId: vendeur
+              ? AppConfig.vendeurProfileId
+              : AppConfig.clientProfileId);
       return Right(tel);
     } catch (e) {
       return Left(_handleError(e));
@@ -151,5 +172,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() => _storage.clearAll();
+  Future<void> logout() async {
+    await _storage.clearAll();
+    await _vendeur.effacer();
+  }
 }

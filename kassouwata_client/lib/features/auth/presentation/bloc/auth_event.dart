@@ -23,11 +23,14 @@ class RegisterRequested extends AuthEvent {
   final String password;
   final String nom;
   final String prenom;
+  /// true : inscription en tant que vendeur (profil VENDEUR)
+  final bool vendeur;
   const RegisterRequested({
     required this.telephone,
     required this.password,
     required this.nom,
     required this.prenom,
+    this.vendeur = false,
   });
   @override
   List<Object?> get props => [telephone];

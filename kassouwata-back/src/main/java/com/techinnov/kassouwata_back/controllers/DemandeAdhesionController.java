@@ -2,6 +2,7 @@ package com.techinnov.kassouwata_back.controllers;
 
 import java.text.Normalizer;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -24,8 +25,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.techinnov.kassouwata_back.entitites.DemandeAdhesion;
 import com.techinnov.kassouwata_back.entitites.Sms;
+import com.techinnov.kassouwata_back.entitites.User;
 import com.techinnov.kassouwata_back.repositories.DemandeAdhesionRepository;
 import com.techinnov.kassouwata_back.repositories.TontineRepository;
+import com.techinnov.kassouwata_back.repositories.UserRepository;
 import com.techinnov.kassouwata_back.services.SmsService;
 
 @CrossOrigin("*")
@@ -41,6 +44,39 @@ public class DemandeAdhesionController {
 
     @Autowired
     private TontineRepository tontineRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    /** Utilisateur connecté (le jeton contient son numéro de téléphone). */
+    private User utilisateurConnecte() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) return null;
+        return userRepository.findByTelephone(auth.getName()).orElse(null);
+    }
+
+    /** Rattache la demande au compte qui porte le numéro invité (s'il existe). */
+    private void rattacherMembre(DemandeAdhesion demande) {
+        if (demande.getTelephone() == null) {
+            demande.setMembre(null);
+            return;
+        }
+        demande.setTelephone(demande.getTelephone().trim());
+        demande.setMembre(userRepository.findByTelephone(demande.getTelephone()).orElse(null));
+    }
+
+    /**
+     * Demandes reçues par l'utilisateur connecté (invitations et tontines rejointes).
+     * Basé sur le compte : un changement de numéro ne fait rien perdre.
+     */
+    @GetMapping("/mes-demandes")
+    public List<DemandeAdhesion> getMesDemandes() {
+        User user = utilisateurConnecte();
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur non connecté.");
+        }
+        return demandeAdhesionRepository.findPourUtilisateur(user.getIdUser(), user.getTelephone());
+    }
 
     // Get All (paginé)
     @GetMapping("/list")
@@ -63,6 +99,7 @@ public class DemandeAdhesionController {
         if (demande.getDateEnvoi() == null) {
             demande.setDateEnvoi(new Date());
         }
+        rattacherMembre(demande);
         DemandeAdhesion saved = demandeAdhesionRepository.save(demande);
 
         // Envoi SMS au destinataire de l'invitation
@@ -111,20 +148,27 @@ public class DemandeAdhesionController {
         // Vérification : si on tente de changer le statut (accepter/refuser),
         // l'utilisateur authentifié doit être le destinataire de la demande.
         if (newDemande.getStatut() != null) {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String telephoneConnecte = (auth != null) ? auth.getName() : null;
+            User connecte = utilisateurConnecte();
+            boolean destinataire = connecte != null && (demande.getMembre() != null
+                    ? demande.getMembre().getIdUser().equals(connecte.getIdUser())
+                    : connecte.getTelephone().equals(demande.getTelephone()));
 
-            if (telephoneConnecte == null || !telephoneConnecte.equals(demande.getTelephone())) {
+            if (!destinataire) {
                 throw new ResponseStatusException(
                         HttpStatus.FORBIDDEN,
                         "Seul l'utilisateur invite peut accepter ou refuser cette demande.");
             }
 
+            if (demande.getMembre() == null) {
+                demande.setMembre(connecte);
+            }
             demande.setStatut(newDemande.getStatut());
         }
 
-        if (newDemande.getTelephone() != null) {
+        if (newDemande.getTelephone() != null
+                && !newDemande.getTelephone().trim().equals(demande.getTelephone())) {
             demande.setTelephone(newDemande.getTelephone());
+            rattacherMembre(demande);
         }
 
         return demandeAdhesionRepository.save(demande);

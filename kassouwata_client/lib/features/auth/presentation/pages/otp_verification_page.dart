@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../bloc/auth_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../vendeur/vendeur_session.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String telephone;
@@ -26,8 +28,9 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  // Compte à rebours 30 minutes
-  int _secondsLeft = 1800;
+  /// Délai avant de pouvoir redemander un code (le code reste valable 30 min).
+  static const int _delaiRenvoi = 180; // 3 minutes
+  int _secondsLeft = _delaiRenvoi;
   Timer? _timer;
 
   @override
@@ -38,7 +41,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
   void _startTimer() {
     _timer?.cancel();
-    setState(() => _secondsLeft = 1800);
+    setState(() => _secondsLeft = _delaiRenvoi);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_secondsLeft <= 0) {
         _timer?.cancel();
@@ -72,10 +75,13 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   }
 
   void _resend() {
+    for (final c in _controllers) {
+      c.clear();
+    }
+    // Le compte à rebours repart quand le serveur confirme l'envoi (OtpRequired)
     context
         .read<AuthBloc>()
         .add(ResendOtpRequested(telephone: widget.telephone));
-    _startTimer();
   }
 
   @override
@@ -101,7 +107,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           ));
           context.go('/login');
         } else if (state is Authenticated) {
-          context.go('/home');
+          _allerAccueil(context);
         } else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(state.message),
@@ -110,6 +116,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
           for (final c in _controllers) c.clear();
           _focusNodes.first.requestFocus();
         } else if (state is OtpRequired) {
+          _startTimer();
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text('Nouveau code envoyé !'),
             backgroundColor: Colors.green,
@@ -163,14 +170,16 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Compte à rebours + renvoi
+                  // Compte à rebours (3 min) puis bouton de renvoi
                   Center(
                     child: _secondsLeft > 0
                         ? RichText(
+                            textAlign: TextAlign.center,
                             text: TextSpan(
                               style: const TextStyle(color: Colors.grey),
                               children: [
-                                const TextSpan(text: 'Renvoyer dans '),
+                                const TextSpan(
+                                    text: 'Vous pourrez demander un nouveau code dans '),
                                 TextSpan(
                                   text: _timerLabel,
                                   style: TextStyle(
@@ -180,9 +189,22 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                               ],
                             ),
                           )
-                        : TextButton(
-                            onPressed: isLoading ? null : _resend,
-                            child: const Text('Renvoyer le code'),
+                        : Column(
+                            children: [
+                              const Text(
+                                'Vous n\'avez pas reçu le code ?',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: isLoading ? null : _resend,
+                                  icon: const Icon(Icons.refresh),
+                                  label: const Text('Renvoyer le code'),
+                                ),
+                              ),
+                            ],
                           ),
                   ),
                 ],
@@ -229,4 +251,10 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       ),
     );
   }
+}
+
+/// Accueil après connexion : un vendeur sans boutique est invité à la créer.
+Future<void> _allerAccueil(BuildContext context) async {
+  final dest = await getIt<VendeurSession>().accueilApresConnexion();
+  if (context.mounted) context.go(dest);
 }

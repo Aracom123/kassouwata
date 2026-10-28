@@ -4,6 +4,8 @@ import '../models/tontine_client_models.dart';
 
 abstract class TontineClientDataSource {
   Future<List<DemandeAdhesionModel>> getAllDemandes();
+  /// Demandes reçues par l'utilisateur connecté (liées à son compte)
+  Future<List<DemandeAdhesionModel>> getMesDemandes();
   Future<DemandeAdhesionModel> updateDemande(
       int id, Map<String, dynamic> body);
   Future<DemandeAdhesionModel> saveDemande(Map<String, dynamic> body);
@@ -40,6 +42,15 @@ class TontineClientDataSourceImpl implements TontineClientDataSource {
     );
     return _parsePageContent(
         response.data, DemandeAdhesionModel.fromJson);
+  }
+
+  @override
+  Future<List<DemandeAdhesionModel>> getMesDemandes() async {
+    final response = await _dio.dio.get(ApiEndpoints.mesDemandesAdhesion);
+    final data = response.data as List<dynamic>? ?? [];
+    return data
+        .map((e) => DemandeAdhesionModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override

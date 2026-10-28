@@ -14,6 +14,7 @@ abstract class AuthRepository {
     required String password,
     required String nom,
     required String prenom,
+    bool vendeur = false,
   });
 
   Future<Either<Failure, Unit>> sendOtp({required String telephone});

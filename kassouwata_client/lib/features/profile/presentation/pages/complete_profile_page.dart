@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../presentation/bloc/complete_profile_bloc.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../vendeur/vendeur_session.dart';
 
 class CompleteProfilePage extends StatefulWidget {
   final String idUser;
@@ -100,7 +102,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
             content: Text('Profil complété ! Bienvenue sur Kassouwata.'),
             backgroundColor: Colors.green,
           ));
-          context.go('/home');
+          _allerAccueil(context);
         } else if (state is CompleteProfileSuccessNoRefresh) {
           context.read<AuthBloc>().add(const LogoutRequested());
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -376,4 +378,10 @@ class _SectionHeader extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Accueil après connexion : un vendeur sans boutique est invité à la créer.
+Future<void> _allerAccueil(BuildContext context) async {
+  final dest = await getIt<VendeurSession>().accueilApresConnexion();
+  if (context.mounted) context.go(dest);
 }

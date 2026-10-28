@@ -17,6 +17,7 @@ abstract class AuthRemoteDataSource {
     required String password,
     required String nom,
     required String prenom,
+    int profileId = AppConfig.clientProfileId,
   });
 
   Future<void> sendOtp({required String telephone});
@@ -46,6 +47,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
     required String nom,
     required String prenom,
+    int profileId = AppConfig.clientProfileId,
   }) async {
     await _dioClient.dio.post(
       ApiEndpoints.register,
@@ -54,7 +56,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'password': password,
         'nom': nom,
         'prenom': prenom,
-        'profile': {'idProfile': AppConfig.clientProfileId},
+        'profile': {'idProfile': profileId},
       },
     );
     // L'OTP est envoyé automatiquement par le backend

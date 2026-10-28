@@ -6,6 +6,8 @@ class ApiEndpoints {
   static const String register = '/api/nosUsers/register';
   static const String sendOtp = '/api/nosUsers/send-otp';
   static const String verifyOtp = '/api/nosUsers/verify-otp';
+  static const String forgotPassword = '/api/nosUsers/forgot-password';
+  static const String resetPassword = '/api/nosUsers/reset-password';
   static const String logout = '/api/nosUsers/logout';
   static const String me = '/api/nosUsers/me';
   static String updateUser(String id) => '/api/nosUsers/update/$id';

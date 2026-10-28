@@ -120,7 +120,16 @@ class _LoginPageState extends State<LoginPage> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: () async {
+                            final tel = await context.push<String>(
+                              '/forgot-password',
+                              extra: _telephoneController.text.trim(),
+                            );
+                            if (tel != null && mounted) {
+                              _telephoneController.text = tel;
+                              _passwordController.clear();
+                            }
+                          },
                           child: const Text('Mot de passe oublié ?'),
                         ),
                       ),

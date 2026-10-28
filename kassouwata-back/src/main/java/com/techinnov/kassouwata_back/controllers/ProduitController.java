@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.techinnov.kassouwata_back.entitites.Produit;
+import com.techinnov.kassouwata_back.enums.BoutiqueStatus;
 import com.techinnov.kassouwata_back.repositories.BoutiqueRepository;
 import com.techinnov.kassouwata_back.repositories.CategorieRepository;
 import com.techinnov.kassouwata_back.repositories.ProduitCommandeRepository;
@@ -42,6 +43,30 @@ public class ProduitController {
     @GetMapping("/list")
     public List<Produit> getAllProduits() {
         return produitRepository.findAllOrderByCreatedAtDesc();
+    }
+
+    // ── Catalogue public (applications mobiles) ────────────────────────────────
+    // Seuls les produits des boutiques au statut ACTIVE sont visibles du public.
+    // Les routes /list, /{id} et /getByBoutiqueId/{id} restent complètes pour le
+    // back-office et pour le vendeur (gestion de ses propres produits).
+
+    @GetMapping("/catalogue")
+    public List<Produit> getCatalogue() {
+        return produitRepository.findCatalogue();
+    }
+
+    @GetMapping("/catalogue/boutique/{idBoutique}")
+    public List<Produit> getCatalogueByBoutique(@PathVariable Long idBoutique) {
+        return produitRepository.findCatalogueByBoutique(idBoutique);
+    }
+
+    @GetMapping("/catalogue/{id}")
+    public ResponseEntity<Produit> getProduitCatalogue(@PathVariable Long id) {
+        return produitRepository.findById(id)
+                .filter(p -> p.getBoutique() != null
+                        && p.getBoutique().getStatus() == BoutiqueStatus.ACTIVE)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     // Get Produit By Id

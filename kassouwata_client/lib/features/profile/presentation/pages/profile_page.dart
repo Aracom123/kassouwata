@@ -137,6 +137,15 @@ class _ProfileView extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 12),
             ),
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => context.push('/changer-numero'),
+            icon: const Icon(Icons.phonelink_setup),
+            label: const Text('Changer de numéro de téléphone'),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
           const SizedBox(height: 24),
 
           // ── Informations personnelles ─────────────────────────────────

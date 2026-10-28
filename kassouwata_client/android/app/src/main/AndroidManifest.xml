@@ -2,6 +2,9 @@
     <!-- Accès Internet pour les appels API -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
+    <!-- geolocator : position de la boutique (espace vendeur) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <application
         android:label="Kassouwata"
         android:name="${applicationName}"

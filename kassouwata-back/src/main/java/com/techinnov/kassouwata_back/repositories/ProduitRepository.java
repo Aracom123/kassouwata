@@ -20,6 +20,17 @@ public interface ProduitRepository  extends JpaRepository<Produit,Long> {
 	@Query(value="SELECT * FROM produit u WHERE u.boutique_id = ?1", nativeQuery=true)
 	List<Produit> getByBoutiqueId(@Param("idBoutique") Long idBoutique);
 
+	// ── Catalogue public : uniquement les produits des boutiques ACTIVE ─────────
+
+	@Query(value = "SELECT p.* FROM produit p JOIN boutique b ON b.id_boutique = p.boutique_id "
+			+ "WHERE b.status = 'ACTIVE' ORDER BY p.created_at DESC", nativeQuery = true)
+	List<Produit> findCatalogue();
+
+	@Query(value = "SELECT p.* FROM produit p JOIN boutique b ON b.id_boutique = p.boutique_id "
+			+ "WHERE b.status = 'ACTIVE' AND p.boutique_id = :idBoutique ORDER BY p.created_at DESC",
+			nativeQuery = true)
+	List<Produit> findCatalogueByBoutique(@Param("idBoutique") Long idBoutique);
+
 	@Query(value="SELECT COUNT(*) FROM produit WHERE statut = true", nativeQuery=true)
 	int getNombreProduitsPublies();
 

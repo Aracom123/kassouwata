@@ -11,6 +11,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.techinnov.kassouwata_back.entitites.Api;
@@ -55,6 +57,10 @@ public class SmsService {
         headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
         headers.set("Authorization", "Basic " + base64Creds);
 
+        // Alphabet GSM 7 bits uniquement : les accents font passer le SMS en
+        // Unicode, ce que certains opérateurs / passerelles refusent.
+        sms.setMessage(versGsm7(sms.getMessage()));
+
         JSONObject payload = new JSONObject();
         payload.put("to", sms.getReceiver());
         payload.put("from", SENDER);
@@ -70,14 +76,42 @@ public class SmsService {
         System.out.println("[SmsService] Envoi SMS : " + payload);
 
         HttpEntity<JSONObject> entity = new HttpEntity<>(payload, headers);
-        ResponseEntity<String> response = restTemplate.exchange(
-                api.getBaseUrl(), HttpMethod.POST, entity, String.class);
-
-        String resp = response.getBody() != null ? response.getBody() : "";
         sms.setSender(SENDER);
-        sms.setResponse(resp);
-        sms.setStatut(resp.contains("Success"));
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(
+                    api.getBaseUrl(), HttpMethod.POST, entity, String.class);
+            String resp = response.getBody() != null ? response.getBody() : "";
+            sms.setResponse(resp);
+            sms.setStatut(resp.contains("Success"));
+            if (!sms.isStatut()) {
+                System.err.println("[SmsService] SMS refusé par le fournisseur pour "
+                        + sms.getReceiver() + " : " + resp);
+            }
+        } catch (HttpStatusCodeException e) {
+            // Erreur HTTP du fournisseur (crédit épuisé, identifiants, numéro refusé…) :
+            // on la conserve en base pour pouvoir diagnostiquer.
+            String detail = "HTTP " + e.getStatusCode().value() + " : " + e.getResponseBodyAsString();
+            System.err.println("[SmsService] Échec envoi SMS à " + sms.getReceiver() + " — " + detail);
+            sms.setStatut(false);
+            sms.setResponse(detail);
+        } catch (RestClientException e) {
+            System.err.println("[SmsService] Fournisseur SMS injoignable : " + e.getMessage());
+            sms.setStatut(false);
+            sms.setResponse("Fournisseur injoignable : " + e.getMessage());
+        }
 
         return smsRepository.save(sms);
+    }
+
+    /** Retire accents et caractères hors alphabet GSM 7 bits (é → e, ’ → ', « » → "). */
+    static String versGsm7(String texte) {
+        if (texte == null) return "";
+        String t = java.text.Normalizer.normalize(texte, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{Mn}", "");
+        t = t.replace('\u2019', '\'').replace('\u2018', '\'')
+             .replace('\u00AB', '"').replace('\u00BB', '"')
+             .replace('\u2013', '-').replace('\u2014', '-')
+             .replace('\u00A0', ' ');
+        return t;
     }
 }

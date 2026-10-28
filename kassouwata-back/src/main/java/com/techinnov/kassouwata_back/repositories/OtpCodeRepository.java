@@ -19,6 +19,9 @@ public interface OtpCodeRepository extends JpaRepository<OtpCode, Long> {
     Optional<OtpCode> findValidOtp(@Param("telephone") String telephone,
                                    @Param("now") LocalDateTime now);
 
+    /** Dernier OTP généré pour un numéro (utilisé pour limiter les renvois). */
+    Optional<OtpCode> findFirstByTelephoneOrderByCreatedAtDesc(String telephone);
+
     /** Invalide tous les OTP précédents avant d'en générer un nouveau */
     @Modifying
     @Transactional

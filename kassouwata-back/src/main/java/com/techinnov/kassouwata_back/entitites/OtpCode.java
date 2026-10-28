@@ -29,6 +29,9 @@ public class OtpCode {
     @Column(nullable = false)
     private boolean used = false;
 
+    /** Nombre de saisies erronées (le code est invalidé au-delà de 5). */
+    private Integer attempts = 0;
+
     /** Date de création */
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -14,6 +14,12 @@ class RegisterUseCase {
     required String password,
     required String nom,
     required String prenom,
+    required bool vendeur,
   }) =>
-      _repository.register(telephone: telephone, password: password, nom: nom, prenom: prenom);
+      _repository.register(
+          telephone: telephone,
+          password: password,
+          nom: nom,
+          prenom: prenom,
+          vendeur: vendeur);
 }
