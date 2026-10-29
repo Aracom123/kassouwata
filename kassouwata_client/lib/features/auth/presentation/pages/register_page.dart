@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../bloc/auth_bloc.dart';
+import '../../../../espaces/espace.dart';
+import '../../../../espaces/espace_auth.dart';
 
 class RegisterPage extends StatefulWidget {
   final String? redirectTo;
@@ -23,6 +25,13 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscure = true;
   /// Profil choisi : false = client, true = vendeur
   bool _vendeur = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Depuis l'espace Vendeur, le profil « Vendeur » est présélectionné
+    _vendeur = espaceVise(widget.redirectTo) == Espace.vendeur;
+  }
 
   @override
   void dispose() {
@@ -70,7 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Créer un compte')),
+        appBar: AppBar(title: Text('Créer un compte · ${espaceVise(widget.redirectTo).nom}')),
         body: SafeArea(
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
@@ -82,14 +91,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text('Rejoignez Kassouwata',
-                          style: theme.textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text('Créez votre compte gratuitement',
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(color: Colors.grey)),
-                      const SizedBox(height: 24),
+                      EnteteAuth(
+                        espace: espaceVise(widget.redirectTo),
+                        titre: 'Créer un compte',
+                        sousTitre: 'Gratuit · ${espaceVise(widget.redirectTo).accroche}',
+                      ),
                       Text('Je suis…',
                           style: theme.textTheme.titleSmall
                               ?.copyWith(fontWeight: FontWeight.w600)),
@@ -100,7 +106,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             child: _ProfilChoix(
                               icon: Icons.shopping_bag_outlined,
                               titre: 'Client',
-                              detail: 'J\'achète et je participe aux tontines',
+                              detail: 'J\'achète et je participe aux Adashé',
                               selectionne: !_vendeur,
                               onTap: loading
                                   ? null
@@ -198,6 +204,12 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       const SizedBox(height: 28),
                       ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              espaceVise(widget.redirectTo).couleur(context),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
                         onPressed: loading ? null : _submit,
                         child: loading
                             ? const SizedBox(

@@ -25,6 +25,7 @@ class ProductModel extends ProductEntity {
     super.boutiqueName,
     super.nombreTranches,
     super.createdDate,
+    super.adasheAutorise,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +51,7 @@ class ProductModel extends ProductEntity {
       idBoutique: (boutique?['idBoutique'] as num?)?.toInt(),
       boutiqueName: boutique?['libelle'] as String?,
       nombreTranches: (json['nombreTranches'] as num?)?.toInt(),
+      adasheAutorise: json['adasheAutorise'] == true,
       createdDate: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,

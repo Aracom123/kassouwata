@@ -110,6 +110,7 @@ public class ProduitController {
             produit.setImagePrincipale(newProduit.getImagePrincipale());
             produit.setPhotos(newProduit.getPhotos());
             produit.setNombreTranches(newProduit.getNombreTranches());
+            produit.setAdasheAutorise(Boolean.TRUE.equals(newProduit.getAdasheAutorise()));
 
             if (newProduit.getBoutique() != null && newProduit.getBoutique().getIdBoutique() != null) {
                 produit.setBoutique(boutiqueRepository.getReferenceById(newProduit.getBoutique().getIdBoutique()));

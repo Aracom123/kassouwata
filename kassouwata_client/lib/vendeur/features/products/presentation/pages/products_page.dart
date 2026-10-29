@@ -8,6 +8,7 @@ import '../../../auth/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/product_entity.dart';
 import '../bloc/product_bloc.dart';
 import '../widgets/product_card.dart';
+import '../../../../../espaces/espace_menu.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -65,6 +66,7 @@ class _ProductsPageState extends State<ProductsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BoutonMenu(),
         title: const Text('Mes produits'),
         actions: [
           IconButton(
@@ -80,7 +82,7 @@ class _ProductsPageState extends State<ProductsPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final bloc = context.read<ProductBloc>();
-          await context.push('/ma-boutique/produits/ajout');
+          await context.push('/vendeur/produits/ajout');
           if (mounted && _idBoutique != null) {
             bloc.add(LoadProducts(_idBoutique!));
           }
@@ -141,7 +143,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           product: product,
                           onTap: () async {
                             final bloc = context.read<ProductBloc>();
-                            await context.push('/ma-boutique/produits/modifier', extra: product);
+                            await context.push('/vendeur/produits/modifier', extra: product);
                             if (mounted && _idBoutique != null) {
                               bloc.add(LoadProducts(_idBoutique!));
                             }

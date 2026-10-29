@@ -18,6 +18,11 @@ public interface TontineVersementRepository extends JpaRepository<TontineVerseme
     /** Le membre a-t-il déjà cotisé pour cette période ? */
     boolean existsByMembre_IdUserAndTontinePeriodeVersement_IdTontinePeriodeVersement(UUID idUser, Long idPeriode);
 
+    /** Total cotisé dans un Adashé (toutes périodes, tous membres). */
+    @Query("SELECT COALESCE(SUM(v.montant), 0) FROM TontineVersement v "
+            + "WHERE v.tontinePeriodeVersement.tontine.idTontine = :idTontine")
+    double totalCotise(@Param("idTontine") Long idTontine);
+
     /** Rattache au compte correspondant les cotisations enregistrées avec un simple numéro. */
     @Modifying
     @Query(value = "UPDATE tontine_versement v SET user_id = u.id_user FROM utilisateur u "

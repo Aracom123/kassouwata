@@ -99,7 +99,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
         if (state is CompleteProfileSuccess) {
           context.read<AuthBloc>().add(UserUpdated(state.user));
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Profil complété ! Bienvenue sur Kassouwata.'),
+            content: Text('Profil complété ! Bienvenue sur KASUWATA My Buz.'),
             backgroundColor: Colors.green,
           ));
           _allerAccueil(context);
@@ -156,7 +156,7 @@ class _CompleteProfilePageState extends State<CompleteProfilePage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Complétez vos informations pour profiter pleinement de Kassouwata.',
+                      'Complétez vos informations pour profiter pleinement de KASUWATA.',
                       style: theme.textTheme.bodyMedium
                           ?.copyWith(color: Colors.grey[600]),
                       textAlign: TextAlign.center,

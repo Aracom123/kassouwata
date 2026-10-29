@@ -44,20 +44,20 @@ public class OtpService {
      */
     public void sendOtp(String telephone) {
         envoyer(telephone, OTP_VALIDITY_MINUTES,
-                "Kassouwata : votre code de verification est %s. Valable %d minutes.");
+                "KASUWATA : votre code de verification est %s. Valable %d minutes.");
     }
 
     /** Envoie un code de confirmation au nouveau numéro lors d'un changement de numéro. */
     public void sendChangeOtp(String nouveauTelephone) {
         envoyer(nouveauTelephone, RESET_VALIDITY_MINUTES,
-                "Kassouwata : votre code de confirmation du nouveau numero est %s. "
+                "KASUWATA : votre code de confirmation du nouveau numero est %s. "
                         + "Valable %d minutes. Ne le communiquez a personne.");
     }
 
     /** Envoie un code de réinitialisation du mot de passe. */
     public void sendResetOtp(String telephone) {
         envoyer(telephone, RESET_VALIDITY_MINUTES,
-                "Kassouwata : votre code pour changer de mot de passe est %s. "
+                "KASUWATA : votre code pour changer de mot de passe est %s. "
                         + "Valable %d minutes. Ne le communiquez a personne.");
     }
 

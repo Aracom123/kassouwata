@@ -38,6 +38,9 @@ public class Produit extends Auditable<String> {
      */
     private Integer nombreTranches;
 
+    /** Le vendeur accepte que ce produit soit acheté en groupe (Adashé Produit). */
+    private Boolean adasheAutorise = false;
+
     @ManyToOne(fetch = FetchType.LAZY, cascade=CascadeType.DETACH)
     @JoinColumn(name ="categorie_id")
 	private Categorie categorie;

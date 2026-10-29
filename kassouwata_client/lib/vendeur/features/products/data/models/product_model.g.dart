@@ -16,6 +16,7 @@ ProductModel _$ProductModelFromJson(Map<String, dynamic> json) => ProductModel(
       photos: json['photos'] as String?,
       statut: json['statut'] as bool? ?? false,
       nombreTranches: (json['nombreTranches'] as num?)?.toInt(),
+      adasheAutorise: json['adasheAutorise'] as bool? ?? false,
       categorie: json['categorie'] == null
           ? null
           : CategorieModel.fromJson(json['categorie'] as Map<String, dynamic>),
@@ -33,6 +34,7 @@ Map<String, dynamic> _$ProductModelToJson(ProductModel instance) =>
       'photos': instance.photos,
       'statut': instance.statut,
       'nombreTranches': instance.nombreTranches,
+      'adasheAutorise': instance.adasheAutorise,
       'categorie': instance.categorie,
       'idBoutique': instance.idBoutique,
     };

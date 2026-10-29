@@ -10,6 +10,8 @@ class SaveProductRequestModel {
   /// Nombre de tranches pour le paiement prépayé.
   /// Null = paiement en tranches non disponible pour ce produit.
   final int? nombreTranches;
+  /// Le produit peut être acheté en groupe (Adashé Produit)
+  final bool adasheAutorise;
   final int? idCategorie;
 
   const SaveProductRequestModel({
@@ -22,6 +24,7 @@ class SaveProductRequestModel {
     this.photos,
     this.statut = true,
     this.nombreTranches,
+    this.adasheAutorise = false,
     this.idCategorie,
   });
 
@@ -34,6 +37,7 @@ class SaveProductRequestModel {
         if (photos != null) 'photos': photos,
         'statut': statut,
         if (nombreTranches != null) 'nombreTranches': nombreTranches,
+        'adasheAutorise': adasheAutorise,
         'boutique': {'idBoutique': idBoutique},
         if (idCategorie != null) 'categorie': {'idCategorie': idCategorie},
       };

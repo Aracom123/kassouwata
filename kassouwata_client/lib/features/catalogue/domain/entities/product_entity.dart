@@ -31,6 +31,8 @@ class ProductEntity extends Equatable {
   final int? nombreTranches;
   /// Date de publication du produit — champ `created_at` côté API (pour tri décroissant).
   final DateTime? createdDate;
+  /// Le vendeur accepte l'achat groupé (Adashé Produit)
+  final bool adasheAutorise;
 
   const ProductEntity({
     required this.idProduit,
@@ -47,6 +49,7 @@ class ProductEntity extends Equatable {
     this.boutiqueName,
     this.nombreTranches,
     this.createdDate,
+    this.adasheAutorise = false,
   });
 
   bool get isAvailable => (quantiteStock ?? 1) > 0;

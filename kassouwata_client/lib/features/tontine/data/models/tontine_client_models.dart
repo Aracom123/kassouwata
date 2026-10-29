@@ -29,10 +29,21 @@ class TontineModel extends TontineEntity {
     required super.montant,
     super.periodicite,
     super.ownerIdUser,
+    super.typeAdashe,
+    super.statutAdashe,
+    super.produitId,
+    super.produitLibelle,
+    super.produitImage,
+    super.montantCible,
+    super.nombreMembres,
+    super.nombrePeriodes,
+    super.ouverte,
+    super.motifRefus,
   });
 
   factory TontineModel.fromJson(Map<String, dynamic> json) {
     final owner = json['tontineOwner'] as Map<String, dynamic>?;
+    final produit = json['produit'] as Map<String, dynamic>?;
     return TontineModel(
       idTontine: (json['idTontine'] as num).toInt(),
       libelle: json['libelle'] as String? ?? '',
@@ -46,6 +57,16 @@ class TontineModel extends TontineEntity {
       montant: (json['montant'] as num?)?.toDouble() ?? 0.0,
       periodicite: json['periodicite'] as String?,
       ownerIdUser: owner?['idUser'] as String?,
+      typeAdashe: json['typeAdashe'] as String?,
+      statutAdashe: json['statutAdashe'] as String?,
+      produitId: (produit?['idProduit'] as num?)?.toInt(),
+      produitLibelle: produit?['libelle'] as String?,
+      produitImage: produit?['imagePrincipale'] as String?,
+      montantCible: (json['montantCible'] as num?)?.toDouble(),
+      nombreMembres: (json['nombreMembres'] as num?)?.toInt(),
+      nombrePeriodes: (json['nombrePeriodes'] as num?)?.toInt(),
+      ouverte: json['ouverte'] == true,
+      motifRefus: json['motifRefus'] as String?,
     );
   }
 

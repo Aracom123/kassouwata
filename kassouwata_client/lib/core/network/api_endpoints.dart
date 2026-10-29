@@ -56,6 +56,18 @@ class ApiEndpoints {
 
   // Tontines — demandes d'adhésion
   static const String demandesAdhesion = '/api/nosDemandesAdhesion/list';
+  // Adashé Produit (achat groupé d'un produit)
+  static const String adasheProduit = '/api/nosTontines/produit';
+  static String adasheProduitResume(int idTontine) => '/api/nosTontines/produit/$idTontine';
+  static String adasheProduitOuverts(int idProduit) =>
+      '/api/nosTontines/produit/de-produit/$idProduit';
+  static String adasheProduitRejoindre(int idTontine) =>
+      '/api/nosTontines/produit/$idTontine/rejoindre';
+  static String adasheProduitDecision(int idTontine) =>
+      '/api/nosTontines/produit/$idTontine/decision';
+  static String adasheProduitBoutique(int idBoutique) =>
+      '/api/nosTontines/produit/boutique/$idBoutique';
+
   /// Demandes reçues par l'utilisateur connecté (rattachées à son compte)
   static const String mesDemandesAdhesion = '/api/nosDemandesAdhesion/mes-demandes';
   static const String saveDemandeAdhesion = '/api/nosDemandesAdhesion/save';

@@ -36,6 +36,36 @@ class TontineEntity extends Equatable {
   final String? periodicite;
   final String? ownerIdUser;
 
+  // Adashé Produit (achat groupé d'un produit) — vides pour un Adashé classique
+  final String? typeAdashe;
+  /// EN_ATTENTE_VENDEUR, ACTIF, REFUSE, OBJECTIF_ATTEINT
+  final String? statutAdashe;
+  final int? produitId;
+  final String? produitLibelle;
+  final String? produitImage;
+  final double? montantCible;
+  final int? nombreMembres;
+  final int? nombrePeriodes;
+  final bool ouverte;
+  final String? motifRefus;
+
+  bool get estProduit => typeAdashe == 'PRODUIT';
+  String get statut => statutAdashe ?? 'ACTIF';
+
+  /// Libellé lisible du statut d'un Adashé Produit
+  String get statutLibelle {
+    switch (statut) {
+      case 'EN_ATTENTE_VENDEUR':
+        return 'En attente du vendeur';
+      case 'REFUSE':
+        return 'Refusé par le vendeur';
+      case 'OBJECTIF_ATTEINT':
+        return 'Objectif atteint';
+      default:
+        return 'Actif';
+    }
+  }
+
   const TontineEntity({
     required this.idTontine,
     required this.libelle,
@@ -45,6 +75,16 @@ class TontineEntity extends Equatable {
     required this.montant,
     this.periodicite,
     this.ownerIdUser,
+    this.typeAdashe,
+    this.statutAdashe,
+    this.produitId,
+    this.produitLibelle,
+    this.produitImage,
+    this.montantCible,
+    this.nombreMembres,
+    this.nombrePeriodes,
+    this.ouverte = false,
+    this.motifRefus,
   });
 
   @override

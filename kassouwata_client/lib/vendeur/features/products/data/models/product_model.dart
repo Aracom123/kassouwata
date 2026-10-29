@@ -15,6 +15,7 @@ class ProductModel {
   final String? photos;
   final bool statut;
   final int? nombreTranches;
+  final bool adasheAutorise;
   final CategorieModel? categorie;
   final int? idBoutique;
 
@@ -28,6 +29,7 @@ class ProductModel {
     this.photos,
     this.statut = false,
     this.nombreTranches,
+    this.adasheAutorise = false,
     this.categorie,
     this.idBoutique,
   });
@@ -46,6 +48,7 @@ class ProductModel {
         photos: photos,
         statut: statut,
         nombreTranches: nombreTranches,
+        adasheAutorise: adasheAutorise,
         categorie: categorie,
         idBoutique: idBoutique,
       );

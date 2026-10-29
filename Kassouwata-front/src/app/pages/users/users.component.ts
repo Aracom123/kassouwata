@@ -324,6 +324,50 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   // ─── Modal suppression ────────────────────────────────────────
+  // Changement de statut
+  isStatutModalOpen = false;
+  userStatut: any = null;
+  nouveauStatut = '';
+  isChangingStatut = false;
+
+  /** Effet de chaque statut, affiché à l'administrateur avant validation. */
+  readonly effetsStatut: Record<string, string> = {
+    ACTIVE: "L'utilisateur peut se connecter et utiliser l'application.",
+    KYC_PENDING: "L'utilisateur devra compléter son profil à sa prochaine connexion.",
+    SUSPENDED: "Connexion refusée et sessions en cours coupées immédiatement. Réversible.",
+    BLOCKED: "Connexion refusée et sessions en cours coupées immédiatement (fraude, abus).",
+    CLOSED: "Compte fermé : plus aucun accès. Les données sont conservées.",
+  };
+
+  openStatutModal(user: User): void {
+    this.userStatut = user;
+    this.nouveauStatut = user.status ?? 'ACTIVE';
+    this.isStatutModalOpen = true;
+  }
+
+  closeStatutModal(): void {
+    this.isStatutModalOpen = false;
+    this.userStatut = null;
+    this.isChangingStatut = false;
+  }
+
+  onChangerStatut(): void {
+    if (!this.userStatut || !this.nouveauStatut) return;
+    this.isChangingStatut = true;
+    this.userService.changerStatut(this.userStatut.idUser, this.nouveauStatut).subscribe({
+      next: () => {
+        const label = this.getStatusLabel(this.nouveauStatut);
+        this.closeStatutModal();
+        this.loadUsers();
+        this.notify(`Statut modifié : ${label}`, 'success');
+      },
+      error: (err) => {
+        this.isChangingStatut = false;
+        this.notify(err?.error?.error ?? 'Impossible de modifier le statut.', 'error');
+      }
+    });
+  }
+
   openDeleteModal(user: User): void {
     this.userToDelete = user;
     this.isDeleteModalOpen = true;

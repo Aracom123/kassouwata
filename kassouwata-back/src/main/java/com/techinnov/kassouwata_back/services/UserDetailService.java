@@ -103,6 +103,31 @@ public class UserDetailService implements UserDetailsService {
 		return userRepository.findById(id).get();
 	}
 
+	/** Statuts qui interdisent toute utilisation du compte (connexion et API). */
+	public static boolean estBloque(com.techinnov.kassouwata_back.enums.UserStatus status) {
+		return status == com.techinnov.kassouwata_back.enums.UserStatus.SUSPENDED
+				|| status == com.techinnov.kassouwata_back.enums.UserStatus.BLOCKED
+				|| status == com.techinnov.kassouwata_back.enums.UserStatus.CLOSED;
+	}
+
+	/** Message affiché à l'utilisateur dont le compte est bloqué. */
+	public static String messageBlocage(com.techinnov.kassouwata_back.enums.UserStatus status) {
+		if (status == com.techinnov.kassouwata_back.enums.UserStatus.CLOSED) {
+			return "Ce compte est fermé. Contactez le support KASUWATA.";
+		}
+		if (status == com.techinnov.kassouwata_back.enums.UserStatus.BLOCKED) {
+			return "Ce compte est bloqué. Contactez le support KASUWATA.";
+		}
+		return "Ce compte est suspendu. Contactez le support KASUWATA.";
+	}
+
+	/** Le compte de ce numéro est-il suspendu, bloqué ou fermé ? */
+	public boolean estBloque(String telephone) {
+		return userRepository.findByTelephone(telephone)
+				.map(u -> estBloque(u.getStatus()))
+				.orElse(true);
+	}
+
 	@Override
 	public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
 

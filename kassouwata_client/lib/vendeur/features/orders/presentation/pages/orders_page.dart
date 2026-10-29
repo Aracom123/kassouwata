@@ -9,6 +9,7 @@ import '../../../../shared/theme/app_colors.dart';
 import '../../../auth/data/datasources/auth_local_datasource.dart';
 import '../../domain/entities/order_entity.dart';
 import '../bloc/order_bloc.dart';
+import '../../../../../espaces/espace_menu.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -45,6 +46,7 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const BoutonMenu(),
         title: const Text('Commandes reçues'),
         actions: [
           IconButton(
@@ -81,7 +83,7 @@ class _OrdersPageState extends State<OrdersPage> {
                   order: state.orders[i],
                   idBoutique: _idBoutique!,
                   onTap: () => context.push(
-                    '/ma-boutique/commandes/detail',
+                    '/vendeur/commandes/detail',
                     extra: {
                       'order': state.orders[i],
                       'idBoutique': _idBoutique!,

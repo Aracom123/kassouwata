@@ -204,6 +204,13 @@
                   </svg>
                   Modifier
                 </button>
+                <button type="button" (click)="openStatutModal(user)"
+                  class="flex items-center gap-1 rounded-lg border border-warning-300 bg-warning-50 px-3 py-1.5 text-xs font-medium text-warning-700 hover:bg-warning-100 dark:border-warning-700 dark:bg-warning-900/20 dark:text-warning-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                  </svg>
+                  Statut
+                </button>
                 <button type="button" (click)="openDeleteModal(user)"
                   class="flex items-center gap-1 rounded-lg border border-error-200 bg-error-50 px-3 py-1.5 text-xs font-medium text-error-600 hover:bg-error-100 dark:border-error-800 dark:bg-error-900/20 dark:text-error-400">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -470,6 +477,58 @@
         </svg>
         }
         Supprimer
+      </button>
+    </div>
+  </div>
+</app-modal>
+}
+
+<!-- Modal : changement de statut -->
+@if (userStatut) {
+<app-modal [isOpen]="isStatutModalOpen" (close)="closeStatutModal()" className="max-w-[480px] m-4">
+  <div class="no-scrollbar relative w-full max-w-[480px] overflow-y-auto rounded-3xl bg-white p-6 dark:bg-gray-900 lg:p-8">
+    <h4 class="mb-1 text-lg font-semibold text-gray-800 dark:text-white/90">
+      Statut de {{ userStatut.personne?.prenom }} {{ userStatut.personne?.nom }}
+    </h4>
+    <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+      {{ userStatut.telephone }} · statut actuel :
+      <span class="font-medium">{{ getStatusLabel(userStatut.status) }}</span>
+    </p>
+
+    <div class="space-y-2">
+      @for (s of statuses; track s.value) {
+        @if (s.value) {
+        <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 dark:border-gray-700"
+          [class.border-brand-500]="nouveauStatut === s.value"
+          [class.bg-brand-50]="nouveauStatut === s.value"
+          [class.border-gray-200]="nouveauStatut !== s.value">
+          <input type="radio" name="nouveauStatut" class="mt-1"
+            [value]="s.value" [checked]="nouveauStatut === s.value"
+            (change)="nouveauStatut = s.value" />
+          <span>
+            <span class="block text-sm font-medium text-gray-800 dark:text-white/90">{{ s.label }}</span>
+            <span class="block text-xs text-gray-500 dark:text-gray-400">{{ effetsStatut[s.value] }}</span>
+          </span>
+        </label>
+        }
+      }
+    </div>
+
+    <div class="mt-6 flex items-center justify-end gap-3">
+      <button type="button" (click)="closeStatutModal()"
+        class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+        Annuler
+      </button>
+      <button type="button" (click)="onChangerStatut()"
+        [disabled]="isChangingStatut || nouveauStatut === userStatut.status"
+        class="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-60">
+        @if (isChangingStatut) {
+        <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        }
+        Enregistrer
       </button>
     </div>
   </div>

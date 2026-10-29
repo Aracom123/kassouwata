@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/app_bar_actions.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../bloc/catalogue_bloc.dart';
+import '../../../../espaces/espace_menu.dart';
 
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
@@ -37,6 +38,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
+        leading: const BoutonMenu(),
         title: const Text('Catégories'),
         actions: buildAppBarActions(context),
       ),

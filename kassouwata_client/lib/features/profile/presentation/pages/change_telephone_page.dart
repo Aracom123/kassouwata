@@ -178,7 +178,7 @@ class _ChangeTelephonePageState extends State<ChangeTelephonePage> {
               Text(
                 _codeEnvoye
                     ? 'Saisissez le code reçu par SMS sur votre nouveau numéro.'
-                    : 'Vos achats, votre boutique et vos tontines restent attachés à votre compte. '
+                    : 'Vos achats, votre boutique et vos Adashé restent attachés à votre compte. '
                         'Un code de confirmation sera envoyé au nouveau numéro.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),

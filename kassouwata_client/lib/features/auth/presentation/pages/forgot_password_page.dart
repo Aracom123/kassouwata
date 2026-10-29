@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../espaces/espace_auth.dart';
 
 /// Mot de passe oublié : réinitialisation avec un code reçu par SMS.
 ///
@@ -148,17 +149,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(Icons.lock_reset, size: 64, color: theme.colorScheme.primary),
-              const SizedBox(height: 16),
-              Text(
-                _codeEnvoye
+              EnteteAuth(
+                espace: espaceVise(),
+                icone: Icons.lock_reset,
+                titre: 'Mot de passe oublié',
+                sousTitre: _codeEnvoye
                     ? 'Saisissez le code reçu par SMS et choisissez un nouveau mot de passe.'
                     : 'Saisissez le numéro de téléphone de votre compte. '
                         'Nous vous enverrons un code par SMS.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
               ),
-              const SizedBox(height: 24),
               Form(
                 key: _formTel,
                 child: TextFormField(
@@ -263,7 +262,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _chargement ? null : (_codeEnvoye ? _reinitialiser : _envoyerCode),
-                style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                style: FilledButton.styleFrom(
+                    backgroundColor: espaceVise().couleur(context),
+                    padding: const EdgeInsets.symmetric(vertical: 14)),
                 child: _chargement
                     ? const SizedBox(
                         height: 20,

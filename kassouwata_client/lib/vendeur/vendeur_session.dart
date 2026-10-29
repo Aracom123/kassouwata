@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../core/storage/secure_storage.dart';
+import '../espaces/espace.dart';
 import 'features/auth/data/datasources/auth_local_datasource.dart';
 import 'features/auth/data/models/personne_model.dart';
 import 'features/auth/data/models/profile_model.dart';
@@ -99,13 +100,36 @@ class VendeurSession {
   }
 
   /// Page à ouvrir après connexion : un vendeur sans boutique est invité à la
-  /// créer, tous les autres arrivent sur l'accueil.
+  /// créer ; sinon le dernier espace utilisé (ou l'écran de choix).
   Future<String> accueilApresConnexion() async {
-    if (!await estConnecteCommeVendeur()) return '/home';
+    if (!await estConnecteCommeVendeur()) {
+      if (EspaceService.dernier() == Espace.vendeur) {
+        await EspaceService.memoriser(Espace.acheteur);
+      }
+      return EspaceService.accueil();
+    }
     try {
-      return await boutique() == null ? '/creer-boutique' : '/home';
+      return await boutique() == null ? '/creer-boutique' : EspaceService.accueil();
     } catch (_) {
-      return '/home';
+      return EspaceService.accueil();
+    }
+  }
+
+  /// Après la création de sa boutique, un client devient vendeur (le backend
+  /// change son profil) : on met la session locale à jour.
+  Future<void> marquerVendeur() async {
+    await _storage.saveProfile(profilVendeur);
+    if (await _local.getCachedUser() == null) {
+      final prenom = await _storage.getPrenom();
+      final nom = await _storage.getNom();
+      await _local.cacheUser(UserModel(
+        idUser: await _storage.getUserId() ?? '',
+        telephone: await _storage.getTelephone() ?? '',
+        status: UserStatus.active,
+        personne: (prenom != null || nom != null)
+            ? PersonneModel(idPersonne: '', nom: nom ?? '', prenom: prenom ?? '')
+            : null,
+      ));
     }
   }
 

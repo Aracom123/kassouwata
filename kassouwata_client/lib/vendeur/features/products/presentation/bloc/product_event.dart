@@ -20,6 +20,7 @@ class CreateProduct extends ProductEvent {
   final double prixUnitaire;
   final int quantite;
   final int? nombreTranches;
+  final bool adasheAutorise;
   final int? idCategorie;
   final String? imagePrincipalePath;
   final List<String>? photosPaths;
@@ -31,6 +32,7 @@ class CreateProduct extends ProductEvent {
     required this.prixUnitaire,
     required this.quantite,
     this.nombreTranches,
+    this.adasheAutorise = false,
     this.idCategorie,
     this.imagePrincipalePath,
     this.photosPaths,
@@ -49,6 +51,7 @@ class UpdateProduct extends ProductEvent {
   final int quantite;
   final bool statut;
   final int? nombreTranches;
+  final bool adasheAutorise;
   final int? idCategorie;
   final String? imagePrincipalePath;
   final List<String>? photosPaths;
@@ -64,6 +67,7 @@ class UpdateProduct extends ProductEvent {
     required this.quantite,
     required this.statut,
     this.nombreTranches,
+    this.adasheAutorise = false,
     this.idCategorie,
     this.imagePrincipalePath,
     this.photosPaths,

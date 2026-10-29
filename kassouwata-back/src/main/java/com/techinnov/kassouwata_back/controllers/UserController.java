@@ -343,14 +343,51 @@ public class UserController {
 		userRepo.deleteById(id);
 	}
 
+	/**
+	 * Changement du statut d'un compte par l'administrateur (back-office).
+	 * Corps attendu : { "status": "ACTIVE" | "SUSPENDED" | "BLOCKED" | "CLOSED" | "KYC_PENDING" }
+	 * Un compte suspendu, bloqué ou fermé ne peut plus se connecter, et ses
+	 * sessions en cours sont refusées immédiatement.
+	 */
+	@org.springframework.web.bind.annotation.PatchMapping("/{id}/statut")
+	public ResponseEntity<?> changerStatut(@PathVariable("id") UUID id, @RequestBody Map<String, String> body) {
+		UserStatus nouveau;
+		try {
+			nouveau = UserStatus.valueOf(String.valueOf(body.get("status")).trim().toUpperCase());
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(Map.of("error", "Statut inconnu : " + body.get("status")));
+		}
+		if (nouveau == UserStatus.PHONE_UNVERIFIED) {
+			return ResponseEntity.badRequest().body(Map.of("error", "Ce statut est attribué automatiquement à l'inscription."));
+		}
+		Optional<User> opt = userRepo.findById(id);
+		if (opt.isEmpty()) {
+			return ResponseEntity.status(404).body(Map.of("error", "Utilisateur introuvable."));
+		}
+		User user = opt.get();
+		Optional<User> admin = utilisateurConnecte();
+		if (admin.isPresent() && admin.get().getIdUser().equals(user.getIdUser())
+				&& UserDetailService.estBloque(nouveau)) {
+			return ResponseEntity.badRequest().body(Map.of("error", "Vous ne pouvez pas bloquer votre propre compte."));
+		}
+		user.setStatus(nouveau);
+		userRepo.save(user);
+		return ResponseEntity.ok(Map.of("idUser", user.getIdUser().toString(), "status", nouveau.name()));
+	}
+
 	@PutMapping("/update/{id}")
 	public User updateUser(@PathVariable("id") final UUID id, @RequestBody User dto) {
 		User user = userRepo.findById(id)
         .orElseThrow(() -> new BusinessException("User introuvable"));
 
-		// 🔐 USER
-		user.setStatus(dto.getStatus());
-		user.setProfile(dto.getProfile());
+		// 🔐 USER : statut et profil modifiables par l'administrateur uniquement
+		boolean admin = SecurityContextHolder.getContext().getAuthentication() != null
+				&& SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
+						.anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
+		if (admin) {
+			if (dto.getStatus() != null) user.setStatus(dto.getStatus());
+			if (dto.getProfile() != null) user.setProfile(dto.getProfile());
+		}
 
 	// 👤 PERSONNE (EXISTANTE)
 		Personne p = user.getPersonne();

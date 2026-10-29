@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/app_bar_actions.dart';
 import '../../../../core/widgets/app_search_field.dart';
 import '../bloc/boutique_bloc.dart';
+import '../../../../espaces/espace_menu.dart';
 
 class BoutiquesPage extends StatefulWidget {
   const BoutiquesPage({super.key});
@@ -34,6 +35,7 @@ class _BoutiquesPageState extends State<BoutiquesPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
+        leading: const BoutonMenu(),
         title: const Text('Boutiques'),
         actions: buildAppBarActions(context),
       ),

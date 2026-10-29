@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/demande_entity.dart';
 import '../bloc/tontine_client_bloc.dart';
+import '../../../../core/widgets/connexion_requise.dart';
+import '../../../../espaces/espace_menu.dart';
 
 class TontineListPage extends StatefulWidget {
   const TontineListPage({super.key});
@@ -39,20 +41,7 @@ class _TontineListPageState extends State<TontineListPage>
     super.dispose();
   }
 
-  void _openCreateSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => BlocProvider.value(
-        value: context.read<TontineClientBloc>(),
-        child: const _CreateTontineSheet(),
-      ),
-    );
-  }
+  void _openCreateSheet() => ouvrirCreationAdashe(context);
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +60,7 @@ class _TontineListPageState extends State<TontineListPage>
       builder: (context, authState) {
         if (authState is! Authenticated) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Tontines')),
+            appBar: AppBar(leading: const BoutonMenu(), title: const Text('Adashen Waya')),
             body: const _UnauthenticatedView(),
           );
         }
@@ -80,31 +69,17 @@ class _TontineListPageState extends State<TontineListPage>
           listenWhen: (prev, curr) =>
               prev.createTontineStatus != curr.createTontineStatus,
           listener: (context, state) {
-            if (state.createTontineStatus == TontineLoadStatus.success) {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Tontine créée avec succès'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            } else if (state.createTontineStatus == TontineLoadStatus.failure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content:
-                      Text(state.errorMessage ?? 'Erreur lors de la création'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
+            // Succès et erreur : affichés par le formulaire de création
+            // (ouvert aussi depuis le Dashboard).
           },
           child: Scaffold(
             appBar: AppBar(
-              title: const Text('Tontines'),
+              leading: const BoutonMenu(),
+              title: const Text('Adashen Waya'),
               bottom: TabBar(
                 controller: _tabController,
                 tabs: const [
-                  Tab(text: 'Mes tontines'),
+                  Tab(text: 'Mes Adashé'),
                   Tab(text: 'Invitations'),
                 ],
               ),
@@ -113,7 +88,7 @@ class _TontineListPageState extends State<TontineListPage>
                 ? FloatingActionButton.extended(
                     onPressed: _openCreateSheet,
                     icon: const Icon(Icons.add),
-                    label: const Text('Nouvelle tontine'),
+                    label: const Text('Nouvel Adashé'),
                   )
                 : null,
             body: TabBarView(
@@ -166,8 +141,8 @@ class _MyTontinesTab extends StatelessWidget {
         if (state.myTontines.isEmpty) {
           return const _EmptyView(
             icon: Icons.savings_outlined,
-            message: 'Aucune tontine créée',
-            hint: 'Appuyez sur + pour créer votre première tontine',
+            message: 'Aucun Adashé créé',
+            hint: 'Appuyez sur + pour créer votre premier Adashé',
           );
         }
 
@@ -339,7 +314,7 @@ class _InvitationsTab extends StatelessWidget {
           return const _EmptyView(
             icon: Icons.mark_email_unread_outlined,
             message: 'Aucune invitation',
-            hint: 'Les invitations à rejoindre une tontine apparaîtront ici',
+            hint: 'Les invitations à rejoindre un Adashé apparaîtront ici',
           );
         }
 
@@ -370,7 +345,7 @@ class _InvitationsTab extends StatelessWidget {
               ],
               if (accepted.isNotEmpty) ...[
                 _SectionHeader(
-                  title: 'Tontines rejointes',
+                  title: 'Adashé rejoints',
                   count: accepted.length,
                   color: Colors.green,
                 ),
@@ -460,7 +435,7 @@ class _InvitationCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    demande.tontineLibelle ?? 'Tontine #${demande.idTontine}',
+                    demande.tontineLibelle ?? 'Adashé #${demande.idTontine}',
                     style: theme.textTheme.titleMedium
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
@@ -536,7 +511,7 @@ class _InvitationCard extends StatelessWidget {
                         extra: demande.tontineLibelle,
                       ),
                   icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                  label: const Text('Consulter la tontine'),
+                  label: const Text('Consulter l\'Adashé'),
                 ),
               ),
           ],
@@ -549,6 +524,24 @@ class _InvitationCard extends StatelessWidget {
 // ──────────────────────────────────────────────────────────────────────────────
 // Formulaire de création de tontine
 // ──────────────────────────────────────────────────────────────────────────────
+
+/// Ouvre le formulaire « Nouvel Adashé ». Renvoie true si l'Adashé a été créé.
+Future<bool> ouvrirCreationAdashe(BuildContext context) async {
+  final bloc = context.read<TontineClientBloc>();
+  final cree = await showModalBottomSheet<bool>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => BlocProvider.value(
+      value: bloc,
+      child: const _CreateTontineSheet(),
+    ),
+  );
+  return cree == true;
+}
 
 class _CreateTontineSheet extends StatefulWidget {
   const _CreateTontineSheet();
@@ -616,6 +609,29 @@ class _CreateTontineSheetState extends State<_CreateTontineSheet> {
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<TontineClientBloc, TontineClientState>(
+      listenWhen: (prev, curr) =>
+          prev.createTontineStatus != curr.createTontineStatus,
+      listener: (context, state) {
+        final messenger = ScaffoldMessenger.of(context);
+        if (state.createTontineStatus == TontineLoadStatus.success) {
+          Navigator.of(context).pop(true);
+          messenger.showSnackBar(const SnackBar(
+            content: Text('Adashé créé avec succès'),
+            backgroundColor: Colors.green,
+          ));
+        } else if (state.createTontineStatus == TontineLoadStatus.failure) {
+          messenger.showSnackBar(SnackBar(
+            content: Text(state.errorMessage ?? 'Erreur lors de la création'),
+            backgroundColor: Colors.red,
+          ));
+        }
+      },
+      child: _formulaire(context),
+    );
+  }
+
+  Widget _formulaire(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
@@ -642,7 +658,7 @@ class _CreateTontineSheetState extends State<_CreateTontineSheet> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Nouvelle tontine',
+                'Nouvel Adashé',
                 style: Theme.of(context)
                     .textTheme
                     .titleLarge
@@ -652,7 +668,7 @@ class _CreateTontineSheetState extends State<_CreateTontineSheet> {
               TextFormField(
                 controller: _libelleCtrl,
                 decoration: const InputDecoration(
-                  labelText: 'Nom de la tontine *',
+                  labelText: 'Nom de l\'Adashé *',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.savings_outlined),
                 ),
@@ -740,7 +756,7 @@ class _CreateTontineSheetState extends State<_CreateTontineSheet> {
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Créer la tontine'),
+                          : const Text('Créer l\'Adashé'),
                     ),
                   );
                 },
@@ -797,41 +813,10 @@ class _UnauthenticatedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.lock_outline, size: 80, color: Colors.grey[300]),
-            const SizedBox(height: 20),
-            Text(
-              'Connexion requise',
-              style: theme.textTheme.titleLarge
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Vous devez être connecté pour accéder aux tontines et gérer vos cotisations.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
-            ),
-            const SizedBox(height: 28),
-            FilledButton.icon(
-              onPressed: () => context.push('/login', extra: '/tontines'),
-              icon: const Icon(Icons.login),
-              label: const Text('Se connecter'),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () => context.push('/register', extra: '/tontines'),
-              icon: const Icon(Icons.person_add_outlined),
-              label: const Text('Créer un compte'),
-            ),
-          ],
-        ),
-      ),
+    return const ConnexionRequise(
+      titre: 'Connexion requise',
+      texte: 'Connectez-vous pour accéder à vos Adashé et gérer vos cotisations.',
+      redirectTo: '/tontines',
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../../../shared/widgets/app_snackbar.dart';
 import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../shared/widgets/location_picker_field.dart';
+import '../../../../../espaces/espace_menu.dart';
 
 class EditBoutiquePage extends StatefulWidget {
   const EditBoutiquePage({super.key});
@@ -71,11 +72,7 @@ class _EditBoutiquePageState extends State<EditBoutiquePage> {
           appBar: AppBar(
             backgroundColor: AppColors.surface,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios,
-                  size: 18, color: AppColors.grey600),
-              onPressed: () => context.pop(),
-            ),
+            leading: const BoutonMenu(),
             title: const Text(
               'Ma boutique',
               style: TextStyle(
@@ -98,7 +95,7 @@ class _EditBoutiquePageState extends State<EditBoutiquePage> {
                   AppSnackBar.showSuccess(
                       context, 'Boutique mise à jour avec succès');
                   // Retourne true pour signaler à ProfilePage de recharger les données
-                  context.pop(true);
+                  if (context.canPop()) context.pop(true);
                 }
               } else if (state is OnboardingFailure) {
                 AppSnackBar.showError(context, state.message);

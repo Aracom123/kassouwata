@@ -17,10 +17,7 @@ class DashboardLoaded extends DashboardState {
   final int nbCommandesEnAttente;
   final int nbProduits;
   final int nbProduitsActifs;
-  final int nbTontines;
-  /// Détail : tontines créées par le vendeur / tontines rejointes sur invitation
-  final int nbTontinesCreees;
-  final int nbTontinesRejointes;
+  final int nbLivrees;
   final double revenuTotal;
 
   const DashboardLoaded({
@@ -30,9 +27,7 @@ class DashboardLoaded extends DashboardState {
     required this.nbCommandesEnAttente,
     required this.nbProduits,
     required this.nbProduitsActifs,
-    required this.nbTontines,
-    required this.nbTontinesCreees,
-    required this.nbTontinesRejointes,
+    required this.nbLivrees,
     required this.revenuTotal,
   });
 
@@ -41,7 +36,7 @@ class DashboardLoaded extends DashboardState {
         boutiqueName,
         nbCommandes,
         nbProduits,
-        nbTontines,
+        nbLivrees,
         revenuTotal,
       ];
 }

@@ -97,6 +97,12 @@ public class WelcomeController {
 			new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Numéro de téléphone ou mot de passe incorrect.")
 		);
 
+		// Compte suspendu, bloqué ou fermé par l'administrateur
+		if (com.techinnov.kassouwata_back.services.UserDetailService.estBloque(user.getStatus())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+					com.techinnov.kassouwata_back.services.UserDetailService.messageBlocage(user.getStatus()));
+		}
+
 		// Bloquer la connexion si le numéro n'a pas encore été vérifié par OTP
 		if (user.getStatus() == UserStatus.PHONE_UNVERIFIED) {
 			throw new ResponseStatusException(
@@ -159,6 +165,11 @@ public class WelcomeController {
 		User user = uRepository.findByTelephone(telephone).orElseThrow(() ->
 			new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Utilisateur introuvable.")
 		);
+
+		if (com.techinnov.kassouwata_back.services.UserDetailService.estBloque(user.getStatus())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+					com.techinnov.kassouwata_back.services.UserDetailService.messageBlocage(user.getStatus()));
+		}
 
 		String newJwt = jwtUtil.generateToken(telephone);
 		Profile userPro = user.getProfile();

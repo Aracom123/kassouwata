@@ -27,11 +27,28 @@
       </svg>
     </div>
     <div>
-      <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ tontine.libelle }}</h2>
+      <div class="flex flex-wrap items-center gap-2">
+        <h2 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ tontine.libelle }}</h2>
+        @if (tontine.typeAdashe === 'PRODUIT') {
+          <span class="inline-flex items-center rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-700 dark:bg-orange-900/20 dark:text-orange-400">Achat groupé</span>
+        }
+        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ statutAdasheClasses() }}">{{ statutAdasheLabel() }}</span>
+      </div>
       <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
         {{ getPeriodiciteLabel(tontine.periodicite) }}
         · Mise : <strong class="text-gray-700 dark:text-gray-300">{{ tontine.montant | number:'1.0-0' }} FCFA</strong>
       </p>
+      @if (tontine.typeAdashe === 'PRODUIT') {
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Produit : <span class="font-medium text-gray-700 dark:text-gray-300">{{ tontine.produit?.libelle || '—' }}</span>
+          · Objectif : <strong>{{ tontine.montantCible | number:'1.0-0' }} FCFA</strong>
+          · {{ tontine.nombreMembres }} membres × {{ tontine.nombrePeriodes }} périodes
+          · {{ tontine.ouverte ? 'Ouvert au public' : 'Sur invitation' }}
+        </p>
+        @if (tontine.statutAdashe === 'REFUSE' && tontine.motifRefus) {
+          <p class="mt-1 text-xs text-error-600">Motif du refus : {{ tontine.motifRefus }}</p>
+        }
+      }
       @if (tontine.tontineOwner) {
         <p class="mt-0.5 text-xs text-gray-400 dark:text-gray-500">
           Créée par :

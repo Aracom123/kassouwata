@@ -33,6 +33,8 @@ class _AddProductPageState extends State<AddProductPage> {
 
   int? _idBoutique;
   bool _statut = true;
+  /// Produit payable en Adashé (achat groupé)
+  bool _adashe = false;
 
   // Catégories
   List<CategorieModel> _categories = [];
@@ -64,6 +66,7 @@ class _AddProductPageState extends State<AddProductPage> {
       if (p.nombreTranches != null) {
         _nombreTranchesCtrl.text = p.nombreTranches.toString();
       }
+      _adashe = p.adasheAutorise;
       _existingImagePrincipale = p.imagePrincipale;
       _existingPhotos = p.photos?.split(',').where((s) => s.isNotEmpty).toList() ?? [];
     }
@@ -190,6 +193,7 @@ class _AddProductPageState extends State<AddProductPage> {
             quantite: quantite,
             statut: _statut,
             nombreTranches: nombreTranches,
+            adasheAutorise: _adashe,
             idCategorie: _selectedCategorieId,
             imagePrincipalePath: _newImagePrincipalePath,
             photosPaths: _newPhotosPaths.isNotEmpty ? _newPhotosPaths : null,
@@ -204,6 +208,7 @@ class _AddProductPageState extends State<AddProductPage> {
             prixUnitaire: prix,
             quantite: quantite,
             nombreTranches: nombreTranches,
+            adasheAutorise: _adashe,
             idCategorie: _selectedCategorieId,
             imagePrincipalePath: _newImagePrincipalePath,
             photosPaths: _newPhotosPaths.isNotEmpty ? _newPhotosPaths : null,
@@ -376,6 +381,16 @@ class _AddProductPageState extends State<AddProductPage> {
                             }
                             return null;
                           },
+                        ),
+                        const SizedBox(height: 12),
+                        SwitchListTile(
+                          title: const Text('Payable en Adashé (achat groupé)'),
+                          subtitle: const Text(
+                              'Un groupe d\'acheteurs peut cotiser ensemble pour acheter ce produit.'),
+                          secondary: const Icon(Icons.groups_outlined),
+                          value: _adashe,
+                          onChanged: (v) => setState(() => _adashe = v),
+                          contentPadding: EdgeInsets.zero,
                         ),
                         if (_isEditing) ...[
                           const SizedBox(height: 12),

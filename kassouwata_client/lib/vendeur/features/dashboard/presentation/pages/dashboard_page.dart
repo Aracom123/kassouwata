@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../../shared/theme/app_colors.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../widgets/stat_card.dart';
+import '../../../../../espaces/espace_menu.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -14,7 +15,8 @@ class DashboardPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tableau de bord'),
+        leading: const BoutonMenu(),
+        title: const Text('Dashboard'),
         actions: [
           BlocBuilder<DashboardBloc, DashboardState>(
             buildWhen: (_, s) => s is DashboardLoaded || s is DashboardLoading,
@@ -175,12 +177,10 @@ class _StatsGrid extends StatelessWidget {
           color: AppColors.primary,
         ),
         StatCard(
-          title: 'Tontines',
-          value: d != null ? '${d.nbTontines}' : '—',
-          subtitle: d != null
-              ? '${d.nbTontinesCreees} créées · ${d.nbTontinesRejointes} rejointes'
-              : 'Créées et rejointes',
-          icon: Icons.savings_outlined,
+          title: 'Livrées',
+          value: d != null ? '${d.nbLivrees}' : '—',
+          subtitle: 'Commandes livrées',
+          icon: Icons.local_shipping_outlined,
           color: AppColors.secondary,
         ),
         StatCard(
@@ -234,10 +234,11 @@ class _QuickActions extends StatelessWidget {
   // push:true → context.push (page au-dessus du shell, retour possible)
   // push:false → context.go  (onglet du shell, remplace la pile)
   final _actions = const [
-    _QuickAction('Ajouter un produit', Icons.add_box_outlined, '/ma-boutique/produits/ajout', push: true),
-    _QuickAction('Mes produits', Icons.inventory_2_outlined, '/ma-boutique/produits', push: true),
-    _QuickAction('Commandes reçues', Icons.receipt_long_outlined, '/ma-boutique/commandes', push: true),
-    _QuickAction('Paramètres boutique', Icons.store_outlined, '/ma-boutique/parametres', push: true),
+    _QuickAction('Ajouter un produit', Icons.add_box_outlined, '/vendeur/produits/ajout', push: true),
+    _QuickAction('Mes produits', Icons.inventory_2_outlined, '/vendeur/produits'),
+    _QuickAction('Commandes reçues', Icons.receipt_long_outlined, '/vendeur/commandes'),
+    _QuickAction('Ma boutique', Icons.store_outlined, '/vendeur/boutique', push: true),
+    _QuickAction('Achats groupés', Icons.groups_outlined, '/vendeur/adashe', push: true),
   ];
 
   @override

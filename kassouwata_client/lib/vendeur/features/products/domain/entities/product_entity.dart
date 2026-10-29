@@ -13,6 +13,8 @@ class ProductEntity extends Equatable {
   /// Nombre de tranches pour le paiement prépayé.
   /// Null = paiement en tranches non disponible pour ce produit.
   final int? nombreTranches;
+  /// Le produit peut être acheté en groupe (Adashé Produit)
+  final bool adasheAutorise;
   final CategorieEntity? categorie;
   final int? idBoutique;
 
@@ -26,6 +28,7 @@ class ProductEntity extends Equatable {
     this.photos,
     this.statut = false,
     this.nombreTranches,
+    this.adasheAutorise = false,
     this.categorie,
     this.idBoutique,
   });

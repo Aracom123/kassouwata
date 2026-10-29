@@ -64,7 +64,7 @@ class _TontineMembreDetailPageState extends State<TontineMembreDetailPage> {
             builder: (_, state) => Text(
               state.currentTontine?.libelle ??
                   widget.tontineLibelle ??
-                  'Tontine',
+                  'Adashé',
             ),
           ),
         ),
@@ -359,7 +359,7 @@ class _PeriodeDetailCard extends StatelessWidget {
         periodeVersementId: periode.idTontinePeriodeVersement,
         montant: tontineMontant ?? 0,
         montantModifiable: tontineMontant == null,
-        titre: 'Cotisation tontine',
+        titre: 'Cotisation Adashé',
         sousTitre: periode.libelle ??
             'Période #${periode.idTontinePeriodeVersement}',
       ),

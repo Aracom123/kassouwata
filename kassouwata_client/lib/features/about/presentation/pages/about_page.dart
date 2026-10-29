@@ -26,7 +26,7 @@ class AboutPage extends StatelessWidget {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'Kassouwata',
+              'KASUWATA My Buz',
               style: theme.textTheme.headlineSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -56,9 +56,9 @@ class AboutPage extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            'Kassouwata est une marketplace mobile qui connecte acheteurs et vendeurs '
+            'KASUWATA My Buz est une marketplace mobile qui connecte acheteurs et vendeurs '
             'locaux au sein d\'un même écosystème numérique. Trouvez des produits, '
-            'passez vos commandes et participez à des tontines en toute simplicité.',
+            'passez vos commandes et participez à des Adashé (Adashen Waya) en toute simplicité.',
             style: theme.textTheme.bodyMedium
                 ?.copyWith(height: 1.6, color: Colors.grey.shade700),
           ),
@@ -70,7 +70,7 @@ class AboutPage extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
-            'Kassouwata est développée par TechInnov, une entreprise technologique '
+            'KASUWATA My Buz est développée par TechInnov, une entreprise technologique '
             'engagée dans la transformation numérique du commerce local. '
             'Notre mission est de rendre le commerce accessible, transparent et '
             'équitable pour tous.',

@@ -39,13 +39,16 @@ public class PaiementFinalisationService {
     private final TransactionRepository transactionRepository;
     private final TontineVersementRepository tontineVersementRepository;
     private final SmsService smsService;
+    private final AdasheProduitService adasheProduitService;
 
     public PaiementFinalisationService(TransactionRepository transactionRepository,
                                        TontineVersementRepository tontineVersementRepository,
-                                       SmsService smsService) {
+                                       SmsService smsService,
+                                       AdasheProduitService adasheProduitService) {
         this.transactionRepository = transactionRepository;
         this.tontineVersementRepository = tontineVersementRepository;
         this.smsService = smsService;
+        this.adasheProduitService = adasheProduitService;
     }
 
     /**
@@ -112,6 +115,9 @@ public class PaiementFinalisationService {
         versement.setTontinePeriodeVersement(transaction.getTontinePeriodeVersement());
         tontineVersementRepository.save(versement);
 
+        // Adashé Produit : le prix du produit est-il réuni ?
+        adasheProduitService.verifierObjectif(transaction.getTontinePeriodeVersement().getTontine());
+
         log.info("Versement de tontine créé pour la transaction {}", transaction.getReferenceExterne());
     }
 
@@ -144,7 +150,7 @@ public class PaiementFinalisationService {
                 Sms sms = new Sms();
                 sms.setReceiver(telephone);
                 sms.setMessage("Paiement de " + Math.round(transaction.getMontant()) + " FCFA recu pour la commande #"
-                        + commande.getIdCommande() + ". Connectez-vous a Kassouwata pour la traiter.");
+                        + commande.getIdCommande() + ". Connectez-vous a KASUWATA My Buz pour la traiter.");
                 smsService.send(sms);
             }
         } catch (Exception e) {

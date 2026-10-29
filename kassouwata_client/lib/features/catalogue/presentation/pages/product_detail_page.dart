@@ -7,6 +7,7 @@ import '../../../../core/di/injection.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/usecases/get_products_usecase.dart';
+import '../../../tontine/presentation/widgets/adashe_produit_widgets.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final int productId;
@@ -144,6 +145,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       product.nombreTranches! >= 2) ...[
                     const SizedBox(height: 16),
                     _buildTranchesCard(product, theme),
+                  ],
+
+                  // ─── Achat groupé (Adashé Produit) ───────────────────
+                  if (product.adasheAutorise) ...[
+                    const SizedBox(height: 16),
+                    AdasheProduitSection(produit: product),
                   ],
 
                   // ─── Description ─────────────────────────────────────

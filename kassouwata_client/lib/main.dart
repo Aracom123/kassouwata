@@ -80,7 +80,7 @@ class _KassouwataClientAppState extends State<KassouwataClientApp> {
         ),
       ],
       child: MaterialApp.router(
-        title: 'Kassouwata',
+        title: 'KASUWATA My Buz',
         theme: AppTheme.light,
         routerConfig: appRouter,
         debugShowCheckedModeBanner: false,

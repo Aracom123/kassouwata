@@ -9,6 +9,9 @@ import '../../../../shared/widgets/custom_button.dart';
 import '../../../../shared/widgets/custom_text_field.dart';
 import '../../../../shared/widgets/location_picker_field.dart';
 import '../bloc/onboarding_bloc.dart';
+import '../../../../vendeur_session.dart';
+import '../../../../../features/auth/domain/entities/user_entity.dart';
+import '../../../../../features/auth/presentation/bloc/auth_bloc.dart';
 
 class CreateBoutiquePage extends StatefulWidget {
   final String idUser;
@@ -43,14 +46,37 @@ class _CreateBoutiquePageState extends State<CreateBoutiquePage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: BlocConsumer<OnboardingBloc, OnboardingState>(
-          listener: (context, state) {
+          listener: (context, state) async {
             if (state is BoutiqueCreated) {
+              await getIt<VendeurSession>().marquerVendeur();
+              if (!context.mounted) return;
+              // Le compte est désormais Vendeur (le backend a changé son profil)
+              final auth = context.read<AuthBloc>();
+              final st = auth.state;
+              if (st is Authenticated &&
+                  !VendeurSession.estVendeur(st.user.profile)) {
+                final u = st.user;
+                auth.add(UserUpdated(UserEntity(
+                  idUser: u.idUser,
+                  telephone: u.telephone,
+                  nom: u.nom,
+                  prenom: u.prenom,
+                  email: u.email,
+                  genre: u.genre,
+                  adresse: u.adresse,
+                  dateNaissance: u.dateNaissance,
+                  lieuNaissance: u.lieuNaissance,
+                  profile: VendeurSession.profilVendeur,
+                  status: u.status,
+                  token: u.token,
+                )));
+              }
               // Ouverte depuis « Ma boutique » : on y revient ; sinon (après
               // inscription) on ouvre l'onglet.
               if (context.canPop()) {
                 context.pop(true);
               } else {
-                context.go('/ma-boutique');
+                context.go('/vendeur');
               }
             } else if (state is OnboardingFailure) {
               AppSnackBar.showError(context, state.message);
@@ -255,7 +281,7 @@ class _CreateBoutiquePageState extends State<CreateBoutiquePage> {
     return Center(
       child: TextButton(
         onPressed: () =>
-            context.canPop() ? context.pop() : context.go('/home'),
+            context.canPop() ? context.pop() : context.go('/espaces'),
         child: Text(
           'Passer pour l\'instant',
           style: TextStyle(color: AppColors.grey400, fontSize: 14),

@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../vendeur/vendeur_session.dart';
+import '../../../../espaces/espace_auth.dart';
+import '../../../../espaces/espace.dart';
 
 class LoginPage extends StatefulWidget {
   /// Si non null, on redirige vers cette page après connexion
@@ -39,7 +41,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final espace = espaceVise(widget.redirectTo);
+    final couleur = espace.couleur(context);
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is KycPending) {
@@ -52,7 +55,19 @@ class _LoginPageState extends State<LoginPage> {
         }
         if (state is Authenticated) {
           final dest = widget.redirectTo;
-          if (dest != null) {
+          if (dest != null &&
+              dest.startsWith('/vendeur') &&
+              !VendeurSession.estVendeur(state.user.profile)) {
+            // Compte Client : on l'emmène dans l'espace Acheteur
+            EspaceService.memoriser(Espace.acheteur);
+            context.go(Espace.acheteur.accueil);
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Vous êtes connecté avec un compte Client : '
+                  'bienvenue dans l\'espace Acheteur. Pour vendre, ouvrez '
+                  'l\'espace Vendeur et créez votre boutique.'),
+              duration: Duration(seconds: 5),
+            ));
+          } else if (dest != null) {
             context.go(dest);
           } else {
             _allerAccueil(context);
@@ -66,7 +81,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text('Connexion')),
+        appBar: AppBar(title: Text('Connexion · ${espace.nom}')),
         body: SafeArea(
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
@@ -78,21 +93,12 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const SizedBox(height: 16),
-                      Icon(Icons.storefront_rounded,
-                          size: 64,
-                          color: theme.colorScheme.primary),
                       const SizedBox(height: 8),
-                      Text('Bienvenue !',
-                          style: theme.textTheme.headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center),
-                      const SizedBox(height: 4),
-                      Text('Connectez-vous pour continuer',
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(color: Colors.grey),
-                          textAlign: TextAlign.center),
-                      const SizedBox(height: 32),
+                      EnteteAuth(
+                        espace: espace,
+                        titre: 'Connexion',
+                        sousTitre: espace.accroche,
+                      ),
                       TextFormField(
                         controller: _telCtrl,
                         decoration: const InputDecoration(
@@ -144,6 +150,11 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 12),
                       ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: couleur,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
                         onPressed: loading ? null : _submit,
                         child: loading
                             ? const SizedBox(

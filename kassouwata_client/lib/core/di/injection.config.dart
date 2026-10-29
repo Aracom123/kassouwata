@@ -229,9 +229,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i_v_dash.DashboardBloc>(() => _i_v_dash.DashboardBloc(
           gh<_i_v_ord_repo_abs.OrderRepository>(),
           gh<_i_v_prod_ds.ProductRemoteDataSource>(),
-          gh<_i_ton_repo_abs.TontineClientRepository>(),
           gh<_i_v_local.AuthLocalDataSource>(),
-          gh<_i429.SecureStorage>(),
         ));
 
     return this;

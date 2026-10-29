@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/di/injection.dart';
+import '../../../core/storage/secure_storage.dart';
 import '../../../features/about/presentation/pages/about_page.dart';
 import '../../../features/about/presentation/pages/cgu_page.dart';
 import '../../../features/auth/presentation/pages/forgot_password_page.dart';
@@ -28,11 +29,14 @@ import '../../../features/profile/presentation/pages/complete_profile_page.dart'
 import '../../../features/profile/presentation/pages/change_telephone_page.dart';
 import '../../../features/profile/presentation/pages/profile_page.dart';
 import '../../../features/tontine/domain/entities/demande_entity.dart';
+import '../../../features/tontine/presentation/pages/adashe_dashboard_page.dart';
 import '../../../features/tontine/presentation/pages/tontine_detail_page.dart';
 import '../../../features/tontine/presentation/pages/tontine_list_page.dart';
 import '../../../features/tontine/presentation/pages/tontine_membre_detail_page.dart';
 import '../../../features/tontine/presentation/pages/tontine_periods_page.dart';
-import '../../../shell/main_shell.dart';
+import '../../../espaces/espace.dart';
+import '../../../espaces/espace_shell.dart';
+import '../../../espaces/espaces_page.dart';
 
 // Espace vendeur (« Ma boutique ») — profil VENDEUR uniquement
 import '../../../vendeur/ma_boutique_page.dart';
@@ -46,10 +50,20 @@ import '../../../vendeur/features/products/presentation/bloc/product_bloc.dart' 
 import '../../../vendeur/features/products/presentation/pages/add_product_page.dart' as v_prod;
 import '../../../vendeur/features/products/presentation/pages/products_page.dart' as v_prod;
 import '../../../vendeur/features/profile/presentation/pages/edit_boutique_page.dart';
+import '../../../features/tontine/presentation/pages/creer_adashe_produit_page.dart';
+import '../../../features/catalogue/domain/entities/product_entity.dart';
+import '../../../vendeur/demandes_adashe_page.dart';
 
-/// Les écrans de gestion de boutique ne sont accessibles qu'aux vendeurs.
+/// Écrans de gestion de boutique : réservés aux vendeurs (sinon retour au
+/// tableau de bord de l'espace Vendeur, qui propose « Devenir vendeur »).
 Future<String?> _reserveVendeur(BuildContext context, GoRouterState state) async =>
-    await getIt<VendeurSession>().estConnecteCommeVendeur() ? null : '/home';
+    await getIt<VendeurSession>().estConnecteCommeVendeur() ? null : '/vendeur';
+
+/// Création de boutique : tout compte connecté (un client devient vendeur).
+Future<String?> _reserveConnecte(BuildContext context, GoRouterState state) async {
+  final token = await getIt<SecureStorage>().getToken();
+  return (token == null || token.isEmpty) ? '/vendeur' : null;
+}
 
 final appRouter = GoRouter(
   initialLocation: '/',
@@ -58,6 +72,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/',
       builder: (context, state) => const SplashPage(),
+    ),
+    GoRoute(
+      path: '/espaces',
+      builder: (context, state) => const EspacesPage(),
     ),
     GoRoute(
       path: '/login',
@@ -126,46 +144,41 @@ final appRouter = GoRouter(
       builder: (context, state) => const CguPage(),
     ),
     GoRoute(
+      path: '/adashe-produit/nouveau',
+      builder: (context, state) =>
+          CreerAdasheProduitPage(produit: state.extra as ProductEntity),
+    ),
+    GoRoute(
+      path: '/vendeur/adashe',
+      redirect: _reserveVendeur,
+      builder: (context, state) => const DemandesAdashePage(),
+    ),
+    GoRoute(
       path: '/paiement',
       builder: (context, state) =>
           PaiementPage(args: state.extra as PaiementArgs),
     ),
-    // ── Espace vendeur : écrans plein écran ─────────────────────────────────
+
+    // ── Espace Vendeur : écrans plein écran ─────────────────────────────────
     GoRoute(
       path: '/creer-boutique',
-      redirect: _reserveVendeur,
+      redirect: _reserveConnecte,
       builder: (context, state) => const CreerBoutiquePage(),
     ),
     GoRoute(
-      path: '/ma-boutique/produits',
-      redirect: _reserveVendeur,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<v_prod.ProductBloc>(),
-        child: const v_prod.ProductsPage(),
-      ),
-    ),
-    GoRoute(
-      path: '/ma-boutique/produits/ajout',
+      path: '/vendeur/produits/ajout',
       redirect: _reserveVendeur,
       builder: (context, state) => const v_prod.AddProductPage(),
     ),
     GoRoute(
-      path: '/ma-boutique/produits/modifier',
+      path: '/vendeur/produits/modifier',
       redirect: _reserveVendeur,
       builder: (context, state) => v_prod.AddProductPage(
         product: state.extra as v_prod.ProductEntity?,
       ),
     ),
     GoRoute(
-      path: '/ma-boutique/commandes',
-      redirect: _reserveVendeur,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<v_ord.OrderBloc>(),
-        child: const v_ord.OrdersPage(),
-      ),
-    ),
-    GoRoute(
-      path: '/ma-boutique/commandes/detail',
+      path: '/vendeur/commandes/detail',
       redirect: _reserveVendeur,
       builder: (context, state) {
         final extra = state.extra as Map<String, dynamic>;
@@ -178,19 +191,12 @@ final appRouter = GoRouter(
         );
       },
     ),
-    GoRoute(
-      path: '/ma-boutique/parametres',
-      redirect: _reserveVendeur,
-      builder: (context, state) => const EditBoutiquePage(),
-    ),
+
+    // ── Espace Acheteur ─────────────────────────────────────────────────────
     ShellRoute(
-      builder: (context, state, child) => MainShell(child: child),
+      builder: (context, state, child) =>
+          EspaceShell(espace: Espace.acheteur, child: child),
       routes: [
-        GoRoute(
-          path: '/ma-boutique',
-          redirect: _reserveVendeur,
-          builder: (context, state) => const MaBoutiquePage(),
-        ),
         GoRoute(
           path: '/home',
           builder: (context, state) => const CataloguePage(),
@@ -229,6 +235,62 @@ final appRouter = GoRouter(
           },
         ),
         GoRoute(
+          path: '/orders',
+          builder: (context, state) => const OrdersPage(),
+        ),
+        GoRoute(
+          path: '/orders/:id',
+          builder: (context, state) {
+            final order = state.extra as OrderEntity;
+            return OrderDetailPage(order: order);
+          },
+        ),
+      ],
+    ),
+
+    // ── Espace Vendeur ──────────────────────────────────────────────────────
+    ShellRoute(
+      builder: (context, state, child) =>
+          EspaceShell(espace: Espace.vendeur, child: child),
+      routes: [
+        GoRoute(
+          path: '/vendeur',
+          builder: (context, state) => const MaBoutiquePage(),
+        ),
+        GoRoute(
+          path: '/vendeur/produits',
+          redirect: _reserveVendeur,
+          builder: (context, state) => BlocProvider(
+            create: (_) => getIt<v_prod.ProductBloc>(),
+            child: const v_prod.ProductsPage(),
+          ),
+        ),
+        GoRoute(
+          path: '/vendeur/commandes',
+          redirect: _reserveVendeur,
+          builder: (context, state) => BlocProvider(
+            create: (_) => getIt<v_ord.OrderBloc>(),
+            child: const v_ord.OrdersPage(),
+          ),
+        ),
+        GoRoute(
+          path: '/vendeur/boutique',
+          redirect: _reserveVendeur,
+          builder: (context, state) => const EditBoutiquePage(),
+        ),
+      ],
+    ),
+
+    // ── Espace Adashen Waya ─────────────────────────────────────────────────
+    ShellRoute(
+      builder: (context, state, child) =>
+          EspaceShell(espace: Espace.adashe, child: child),
+      routes: [
+        GoRoute(
+          path: '/adashe',
+          builder: (context, state) => const AdasheDashboardPage(),
+        ),
+        GoRoute(
           path: '/tontines',
           builder: (context, state) => const TontineListPage(),
         ),
@@ -257,15 +319,8 @@ final appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: '/orders',
-          builder: (context, state) => const OrdersPage(),
-        ),
-        GoRoute(
-          path: '/orders/:id',
-          builder: (context, state) {
-            final order = state.extra as OrderEntity;
-            return OrderDetailPage(order: order);
-          },
+          path: '/adashe/compte',
+          builder: (context, state) => const ProfilePage(),
         ),
       ],
     ),

@@ -44,6 +44,12 @@ export class UsersService {
     return this.http.put<User>(this.API_URL+"/update/"+id, newUser);
   }
 
+  /** Changement du statut d'un compte (administrateur uniquement). */
+  changerStatut(idUser: string | number, status: string): Observable<{ idUser: string; status: string }> {
+    return this.http.patch<{ idUser: string; status: string }>(
+      this.API_URL + '/' + idUser + '/statut', { status });
+  }
+
   resetPassword(idUser: number, newPassword: string) {
     return this.http.put<User>(this.API_URL+"/resetPaswword/"+idUser, newPassword);
   }

@@ -26,7 +26,7 @@ class CguPage extends StatelessWidget {
           const _Section(
             title: '1. Présentation',
             body:
-                "L'application Kassouwata est éditée par TechInnov. Elle a pour vocation "
+                "L'application KASUWATA My Buz est éditée par TechInnov. Elle a pour vocation "
                 "de mettre en relation des acheteurs et des vendeurs au sein d'une "
                 "marketplace numérique. En utilisant l'application, vous acceptez "
                 "sans réserve les présentes conditions.",
@@ -65,7 +65,7 @@ class CguPage extends StatelessWidget {
           const _Section(
             title: '6. Propriété intellectuelle',
             body:
-                "L'ensemble des contenus présents sur Kassouwata (logo, textes, "
+                "L'ensemble des contenus présents sur KASUWATA My Buz (logo, textes, "
                 "interfaces) est la propriété exclusive de TechInnov et est protégé "
                 "par le droit d'auteur. Toute reproduction sans autorisation est interdite.",
           ),

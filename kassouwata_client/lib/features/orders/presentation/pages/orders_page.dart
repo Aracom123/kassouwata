@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../domain/entities/order_entity.dart';
 import '../bloc/order_bloc.dart';
+import '../../../../core/widgets/connexion_requise.dart';
+import '../../../../espaces/espace_menu.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -26,9 +28,8 @@ class _OrdersPageState extends State<OrdersPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Mes achats')),
+      appBar: AppBar(leading: const BoutonMenu(), title: const Text('Mes achats')),
       body: BlocConsumer<AuthBloc, AuthState>(
         listenWhen: (prev, curr) =>
             prev is! Authenticated && curr is Authenticated,
@@ -39,47 +40,10 @@ class _OrdersPageState extends State<OrdersPage> {
         builder: (context, authState) {
           // Garde : utilisateur non connecté
           if (authState is! Authenticated) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.lock_outline,
-                      size: 72,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.4),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Connectez-vous pour voir vos achats',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Retrouvez l'historique de toutes vos commandes après connexion.",
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: Colors.grey),
-                    ),
-                    const SizedBox(height: 28),
-                    FilledButton.icon(
-                      onPressed: () =>
-                          context.push('/login', extra: '/orders'),
-                      icon: const Icon(Icons.login),
-                      label: const Text('Se connecter'),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: () =>
-                          context.push('/register', extra: '/orders'),
-                      child: const Text('Créer un compte'),
-                    ),
-                  ],
-                ),
-              ),
+            return const ConnexionRequise(
+              titre: 'Connectez-vous pour voir vos achats',
+              texte: "Retrouvez l'historique de toutes vos commandes après connexion.",
+              redirectTo: '/orders',
             );
           }
 

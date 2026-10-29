@@ -287,11 +287,17 @@ public class TransactionPaiementService {
                                          Date ilYA10Min, Transaction transaction) {
         Tontine tontine = tontineRepository.findById(req.operationId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Tontine introuvable : " + req.operationId()));
+                        "Adashé introuvable : " + req.operationId()));
 
+        if (tontine.statutEffectif() != com.techinnov.kassouwata_back.enums.StatutAdashe.ACTIF) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    tontine.statutEffectif() == com.techinnov.kassouwata_back.enums.StatutAdashe.EN_ATTENTE_VENDEUR
+                            ? "Cet Adashé attend la validation du vendeur : les cotisations commenceront ensuite."
+                            : "Cet Adashé n'accepte plus de cotisations.");
+        }
         if (!estMembre(tontine, utilisateur)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Vous n'êtes pas membre de cette tontine");
+                    "Vous n'êtes pas membre de cet Adashé");
         }
 
         TontinePeriodeVersement periode = periodeAPayer(tontine, req.periodeVersementId());
@@ -321,7 +327,9 @@ public class TransactionPaiementService {
         }
         for (DemandeAdhesion demande : demandeAdhesionRepository.findByTontineId(tontine.getIdTontine())) {
             if (demande.getStatut() == DemandeAdhesionStatus.ACCEPTEE
-                    && Objects.equals(demande.getTelephone(), utilisateur.getTelephone())) {
+                    && ((demande.getMembre() != null
+                            && Objects.equals(demande.getMembre().getIdUser(), utilisateur.getIdUser()))
+                        || Objects.equals(demande.getTelephone(), utilisateur.getTelephone()))) {
                 return true;
             }
         }
@@ -337,7 +345,7 @@ public class TransactionPaiementService {
                     .filter(p -> p.getIdTontinePeriodeVersement().equals(periodeVersementId))
                     .findFirst()
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "La période " + periodeVersementId + " n'appartient pas à cette tontine"));
+                            "La période " + periodeVersementId + " n'appartient pas à cet Adashé"));
         }
 
         Date maintenant = new Date();
@@ -346,7 +354,7 @@ public class TransactionPaiementService {
                         && !maintenant.before(p.getDateDebut()) && !maintenant.after(p.getDateFin()))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Aucune période de cotisation en cours pour cette tontine : précisez periodeVersementId"));
+                        "Aucune période de cotisation en cours pour cet Adashé : précisez periodeVersementId"));
     }
 
     // ------------------------------------------------------------------

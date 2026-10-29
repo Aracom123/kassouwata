@@ -8,6 +8,7 @@ import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../paiement/data/paiement_models.dart';
 import '../../domain/entities/demande_entity.dart';
 import '../bloc/tontine_client_bloc.dart';
+import '../widgets/adashe_produit_widgets.dart';
 
 class TontineDetailPage extends StatefulWidget {
   final int tontineId;
@@ -154,7 +155,8 @@ class _TontineDetailPageState extends State<TontineDetailPage>
             ],
           ),
         ),
-        floatingActionButton: _tabController.index == 0
+        // Adashé Produit : périodes générées automatiquement à l'accord du vendeur
+        floatingActionButton: _tabController.index == 0 && !t.estProduit
             ? FloatingActionButton.extended(
                 onPressed: _openAddPeriodeSheet,
                 icon: const Icon(Icons.add),
@@ -201,6 +203,8 @@ class _TontineDetailPageState extends State<TontineDetailPage>
                 ],
               ),
             ),
+            // ── Adashé Produit : produit, statut, progression ───────────────
+            if (t.estProduit) AdasheProduitStatutCard(idTontine: t.idTontine),
             // ── Tabs ─────────────────────────────────────────────────────────
             Expanded(
               child: TabBarView(
@@ -348,7 +352,7 @@ class _PeriodeCard extends StatelessWidget {
         operationId: periode.idTontine!,
         periodeVersementId: periode.idTontinePeriodeVersement,
         montant: tontineMontant,
-        titre: 'Cotisation tontine',
+        titre: 'Cotisation Adashé',
         sousTitre: periode.libelle ??
             'Période #${periode.idTontinePeriodeVersement}',
       ),
@@ -631,7 +635,7 @@ class _MembresTab extends StatelessWidget {
           return const _EmptyView(
             icon: Icons.people_outline,
             message: 'Aucune demande d\'adhésion',
-            hint: 'Les demandes pour rejoindre cette tontine apparaîtront ici',
+            hint: 'Les demandes pour rejoindre cet Adashé apparaîtront ici',
           );
         }
 

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../bloc/auth_bloc.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../vendeur/vendeur_session.dart';
+import '../../../../espaces/espace_auth.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String telephone;
@@ -94,8 +95,7 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = theme.colorScheme.primary;
+    final primary = espaceVise().couleur(context);
 
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -133,18 +133,13 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
-                  Icon(Icons.verified_outlined, size: 52, color: primary),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Confirmez votre numéro',
-                    style: theme.textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.bold),
-                  ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Un code à 6 chiffres a été envoyé au\n${widget.telephone}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 15),
+                  EnteteAuth(
+                    espace: espaceVise(),
+                    icone: Icons.verified_outlined,
+                    titre: 'Confirmez votre numéro',
+                    sousTitre:
+                        'Un code à 6 chiffres a été envoyé au ${widget.telephone}',
                   ),
                   const SizedBox(height: 36),
 

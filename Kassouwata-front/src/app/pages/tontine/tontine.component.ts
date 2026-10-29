@@ -51,10 +51,13 @@ export class TontineComponent implements OnInit, OnDestroy {
   tontinesMensuelles = 0;
   tontinesTrimestrielles = 0;
   tontinesAutres = 0;
+  adashesProduit = 0;
+  adashesEnAttente = 0;
 
   // ─── Filtres ──────────────────────────────────────────────────
   searchTerm = '';
   selectedPeriodicite = '';
+  selectedType = '';
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -66,6 +69,19 @@ export class TontineComponent implements OnInit, OnDestroy {
     { value: 'SEMESTRIEL', label: 'Semestriel' },
     { value: 'ANNUEL', label: 'Annuel' },
   ];
+
+  readonly types = [
+    { value: '', label: 'Tous les types' },
+    { value: 'CLASSIQUE', label: 'Adashé classique' },
+    { value: 'PRODUIT', label: 'Achat groupé (produit)' },
+  ];
+
+  readonly statutsAdashe: Record<string, { label: string; classes: string }> = {
+    EN_ATTENTE_VENDEUR: { label: 'En attente du vendeur', classes: 'bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400' },
+    ACTIF:              { label: 'Actif',                 classes: 'bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400' },
+    REFUSE:             { label: 'Refusé',                classes: 'bg-error-50 text-error-700 dark:bg-error-900/20 dark:text-error-400' },
+    OBJECTIF_ATTEINT:   { label: 'Objectif atteint',      classes: 'bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400' },
+  };
 
   // ─── Alertes ──────────────────────────────────────────────────
   showAlert = false;
@@ -122,6 +138,8 @@ export class TontineComponent implements OnInit, OnDestroy {
         this.tontinesAutres        = this.allTontines.filter(t =>
           !['HEBDOMADAIRE', 'MENSUEL', 'TRIMESTRIEL'].includes(t.periodicite)
         ).length;
+        this.adashesProduit   = this.allTontines.filter(t => this.estProduit(t)).length;
+        this.adashesEnAttente = this.allTontines.filter(t => this.statutDe(t) === 'EN_ATTENTE_VENDEUR').length;
 
         this.applyFiltersAndPaginate();
         this.isLoading = false;
@@ -148,13 +166,18 @@ export class TontineComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(t => t.periodicite === this.selectedPeriodicite);
     }
 
+    if (this.selectedType) {
+      filtered = filtered.filter(t => (this.estProduit(t) ? 'PRODUIT' : 'CLASSIQUE') === this.selectedType);
+    }
+
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(t =>
         t.libelle?.toLowerCase().includes(term) ||
         t.tontineOwner?.personne?.nom?.toLowerCase().includes(term) ||
         t.tontineOwner?.personne?.prenom?.toLowerCase().includes(term) ||
-        t.tontineOwner?.telephone?.toLowerCase().includes(term)
+        t.tontineOwner?.telephone?.toLowerCase().includes(term) ||
+        t.produit?.libelle?.toLowerCase().includes(term)
       );
     }
 
@@ -182,15 +205,45 @@ export class TontineComponent implements OnInit, OnDestroy {
     this.applyFiltersAndPaginate();
   }
 
+  onTypeChange(val: string): void {
+    this.selectedType = this.selectedType === val ? '' : val;
+    this.page = 0;
+    this.applyFiltersAndPaginate();
+  }
+
+  onTypeSelectChange(val: string): void {
+    this.selectedType = val;
+    this.page = 0;
+    this.applyFiltersAndPaginate();
+  }
+
+  // ─── Type / statut Adashé ─────────────────────────────────────
+  estProduit(t: any): boolean {
+    return t?.typeAdashe === 'PRODUIT';
+  }
+
+  statutDe(t: any): string {
+    return t?.statutAdashe || 'ACTIF';
+  }
+
+  statutLabel(t: any): string {
+    return this.statutsAdashe[this.statutDe(t)]?.label ?? this.statutDe(t);
+  }
+
+  statutClasses(t: any): string {
+    return this.statutsAdashe[this.statutDe(t)]?.classes ?? 'bg-gray-100 text-gray-600';
+  }
+
   clearFilters(): void {
     this.searchTerm = '';
     this.selectedPeriodicite = '';
+    this.selectedType = '';
     this.page = 0;
     this.applyFiltersAndPaginate();
   }
 
   get hasActiveFilters(): boolean {
-    return !!(this.searchTerm || this.selectedPeriodicite);
+    return !!(this.searchTerm || this.selectedPeriodicite || this.selectedType);
   }
 
   // ─── Pagination ───────────────────────────────────────────────

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../bloc/auth_bloc.dart';
+import '../../../../espaces/espace.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -28,10 +29,9 @@ class _SplashPageState extends State<SplashPage> {
             'prenom': state.prenom ?? '',
             'nom': state.nom ?? '',
           });
-        } else if (state is Authenticated) {
-          context.go('/home');
-        } else if (state is Unauthenticated) {
-          context.go('/home'); // catalogue accessible sans auth
+        } else if (state is Authenticated || state is Unauthenticated) {
+          // Dernier espace utilisé, sinon l'écran de choix des 3 espaces
+          context.go(EspaceService.accueil());
         }
       },
       child: Scaffold(
@@ -44,14 +44,14 @@ class _SplashPageState extends State<SplashPage> {
                   size: 80, color: Colors.white),
               const SizedBox(height: 16),
               Text(
-                'Kassouwata',
+                'KASUWATA',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
               ),
               const SizedBox(height: 8),
-              Text('Le marché dans votre poche',
+              Text('My Buz',
                   style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 14)),

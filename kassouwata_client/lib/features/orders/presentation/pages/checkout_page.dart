@@ -761,7 +761,7 @@ class _StepResume extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'En confirmant, vous acceptez les conditions générales d\'utilisation de Kassouwata.',
+                  'En confirmant, vous acceptez les conditions générales d\'utilisation de KASUWATA.',
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: Colors.grey.shade700),
                 ),

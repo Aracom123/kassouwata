@@ -9,6 +9,10 @@ import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/onboarding/presentation/pages/create_boutique_page.dart';
 import 'features/shop/data/models/shop_model.dart';
 import 'vendeur_session.dart';
+import '../espaces/espace.dart';
+import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../core/widgets/connexion_requise.dart';
+import '../espaces/espace_menu.dart';
 
 /// Onglet « Ma boutique » (profil VENDEUR uniquement).
 ///
@@ -23,18 +27,14 @@ class MaBoutiquePage extends StatefulWidget {
 
 class _MaBoutiquePageState extends State<MaBoutiquePage> {
   final _session = getIt<VendeurSession>();
-  late Future<_Etat> _etat;
+  Future<_Etat>? _etat;
 
-  @override
-  void initState() {
-    super.initState();
-    // Toujours relire la boutique sur le serveur à l'ouverture de l'onglet :
-    // le tableau de bord et les produits utilisent ensuite la bonne boutique.
-    _etat = _charger(rafraichir: true);
-  }
+  /// Compte pour lequel [_etat] a été chargé (identifiant + profil) : la
+  /// boutique est relue à chaque connexion, déconnexion ou changement de profil.
+  String? _cle;
 
-  Future<_Etat> _charger({bool rafraichir = false}) async {
-    if (!await _session.estConnecteCommeVendeur()) return const _Etat.nonVendeur();
+  Future<_Etat> _charger({required bool vendeur, bool rafraichir = true}) async {
+    if (!vendeur) return const _Etat.nonVendeur();
     ShopModel? b;
     try {
       b = await _session.boutique(rafraichir: rafraichir);
@@ -46,42 +46,71 @@ class _MaBoutiquePageState extends State<MaBoutiquePage> {
     return b == null ? const _Etat.sansBoutique() : const _Etat.ok();
   }
 
-  void _recharger() =>
-      setState(() => _etat = _charger(rafraichir: true));
+  void _recharger() => setState(() => _cle = null);
 
   @override
   Widget build(BuildContext context) {
+    // L'état de connexion vient directement de l'AuthBloc : la page se met à
+    // jour dès la connexion, sans dépendre d'un chargement mis en cache.
+    return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (a, b) =>
+          b is Authenticated || b is Unauthenticated || b is KycPending,
+      builder: (context, auth) {
+        if (auth is! Authenticated) {
+          _cle = null;
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Espace Vendeur'),
+              leading: const BoutonMenu(),
+            ),
+            body: const ConnexionRequise(
+              titre: 'Espace Vendeur',
+              texte: 'Connectez-vous pour gérer votre boutique, vos produits et vos commandes.',
+              redirectTo: '/vendeur',
+            ),
+          );
+        }
+        final cle = '${auth.user.idUser}|${auth.user.profile}';
+        if (cle != _cle || _etat == null) {
+          _cle = cle;
+          _etat = _charger(vendeur: VendeurSession.estVendeur(auth.user.profile));
+        }
+        return _contenu(context);
+      },
+    );
+  }
+
+  Widget _contenu(BuildContext context) {
     return FutureBuilder<_Etat>(
-      future: _etat,
+      future: _etat!,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
           return const Scaffold(
               body: Center(child: CircularProgressIndicator()));
         }
         if (snap.hasError) {
+          debugPrint('[MaBoutique] Chargement impossible : ${snap.error}');
           return _Message(
             icon: Icons.wifi_off_outlined,
             titre: 'Impossible de charger votre boutique',
             texte: 'Vérifiez votre connexion puis réessayez.',
             action: 'Réessayer',
             onAction: _recharger,
+            actionSecondaire: 'Aller à l\'espace Acheteur',
+            onActionSecondaire: () => context.go(Espace.acheteur.accueil),
           );
         }
         final etat = snap.data!;
-        if (etat.nonVendeur) {
-          return _Message(
-            icon: Icons.lock_outline,
-            titre: 'Espace réservé aux vendeurs',
-            texte: 'La gestion de boutique est disponible pour les comptes vendeur.',
-            action: 'Retour à l\'accueil',
-            onAction: () => context.go('/home'),
-          );
-        }
-        if (etat.sansBoutique) {
+        if (etat.nonVendeur || etat.sansBoutique) {
           return _Message(
             icon: Icons.storefront_outlined,
-            titre: 'Vous n\'avez pas encore de boutique',
-            texte: 'Créez votre boutique pour publier vos produits et recevoir des commandes.',
+            titre: etat.nonVendeur
+                ? 'Devenez vendeur'
+                : 'Vous n\'avez pas encore de boutique',
+            texte: etat.nonVendeur
+                ? 'Créez votre boutique pour vendre vos produits sur KASUWATA. '
+                    'Vous gardez votre accès Acheteur et Adashen Waya.'
+                : 'Créez votre boutique pour publier vos produits et recevoir des commandes.',
             action: 'Créer ma boutique',
             onAction: () async {
               await context.push('/creer-boutique');
@@ -143,6 +172,8 @@ class _Message extends StatelessWidget {
   final String texte;
   final String action;
   final VoidCallback onAction;
+  final String? actionSecondaire;
+  final VoidCallback? onActionSecondaire;
 
   const _Message({
     required this.icon,
@@ -150,13 +181,18 @@ class _Message extends StatelessWidget {
     required this.texte,
     required this.action,
     required this.onAction,
+    this.actionSecondaire,
+    this.onActionSecondaire,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Ma boutique')),
+      appBar: AppBar(
+        title: const Text('Espace Vendeur'),
+        leading: const BoutonMenu(),
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
@@ -176,6 +212,12 @@ class _Message extends StatelessWidget {
                       ?.copyWith(color: Colors.grey.shade700)),
               const SizedBox(height: 24),
               FilledButton(onPressed: onAction, child: Text(action)),
+              if (actionSecondaire != null) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                    onPressed: onActionSecondaire,
+                    child: Text(actionSecondaire!)),
+              ],
             ],
           ),
         ),

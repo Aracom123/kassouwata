@@ -173,7 +173,7 @@ public class CommandeController {
 
 				String nomBoutique = boutique.getLibelle() != null ? boutique.getLibelle() : "votre boutique";
 				String message = "Vous avez une nouvelle commande sur " + nomBoutique
-						+ " (commande #" + commande.getIdCommande() + "). Connectez-vous a Kassouwata pour la traiter.";
+						+ " (commande #" + commande.getIdCommande() + "). Connectez-vous a KASUWATA My Buz pour la traiter.";
 
 				Sms sms = new Sms();
 				sms.setReceiver(telephone);

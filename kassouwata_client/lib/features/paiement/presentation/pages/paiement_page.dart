@@ -967,7 +967,7 @@ class _NoteSecurite extends StatelessWidget {
           Expanded(
             child: Text(
               carte
-                  ? 'Paiement sécurisé. Vos données de carte ne sont pas conservées par Kassouwata. '
+                  ? 'Paiement sécurisé. Vos données de carte ne sont pas conservées par KASUWATA. '
                       'Votre banque peut vous demander une vérification supplémentaire.'
                   : 'Vous recevrez une demande de confirmation sur votre téléphone. '
                       'Gardez-le à portée de main.',

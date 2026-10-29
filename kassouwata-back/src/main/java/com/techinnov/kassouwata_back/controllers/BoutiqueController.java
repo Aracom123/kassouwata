@@ -47,6 +47,9 @@ public class BoutiqueController {
 	@Autowired
 	private ProduitRepository produitRepository;
 
+	@Autowired
+	private com.techinnov.kassouwata_back.repositories.ProfileRepository profileRepository;
+
 	
 	//Get All Boutiques
 	@GetMapping("/list")
@@ -106,6 +109,13 @@ public class BoutiqueController {
 		User vendeur = userRepository.findById(uuid)
 				.orElseThrow(() -> new ResourceNotFoundException("Vendeur introuvable avec l'id : " + vendeurId));
 
+		// Un utilisateur ne crée une boutique que pour lui-même (sauf administrateur)
+		var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+		if (!estAdmin() && (auth == null || !vendeur.getTelephone().equals(auth.getName()))) {
+			return ResponseEntity.status(HttpStatus.FORBIDDEN)
+					.body("Vous ne pouvez créer une boutique que pour votre propre compte.");
+		}
+
 		// Une seule boutique par vendeur
 		if (boutiqueRepository.getUserByVendeurID(uuid) != null) {
 			return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -115,6 +125,17 @@ public class BoutiqueController {
 		// Seul un administrateur peut créer une boutique directement active :
 		// une boutique créée depuis l'application attend la validation.
 		boolean admin = estAdmin();
+
+		// Un client qui crée sa boutique devient vendeur (espace Vendeur de l'application)
+		String libelleProfil = vendeur.getProfile() != null ? vendeur.getProfile().getLibelle() : null;
+		if (libelleProfil == null || "CLIENT".equalsIgnoreCase(libelleProfil)) {
+			com.techinnov.kassouwata_back.entitites.Profile profilVendeur =
+					profileRepository.getProfileClient("VENDEUR");
+			if (profilVendeur != null) {
+				vendeur.setProfile(profilVendeur);
+				vendeur = userRepository.save(vendeur);
+			}
+		}
 
 		Boutique boutique = new Boutique();
 		boutique.setLibelle(request.getLibelle());

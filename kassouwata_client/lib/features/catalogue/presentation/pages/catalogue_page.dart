@@ -6,6 +6,7 @@ import '../../../../core/widgets/app_bar_actions.dart';
 import '../../../cart/presentation/bloc/cart_bloc.dart';
 import '../bloc/catalogue_bloc.dart';
 import '../widgets/product_card.dart';
+import '../../../../espaces/espace_menu.dart';
 
 class CataloguePage extends StatefulWidget {
   const CataloguePage({super.key});
@@ -34,7 +35,8 @@ class _CataloguePageState extends State<CataloguePage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kassouwata'),
+        leading: const BoutonMenu(),
+        title: const Text('KASUWATA'),
         actions: buildAppBarActions(context),
       ),
       body: BlocBuilder<CatalogueBloc, CatalogueState>(

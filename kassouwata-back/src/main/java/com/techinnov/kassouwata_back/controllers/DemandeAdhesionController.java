@@ -105,19 +105,19 @@ public class DemandeAdhesionController {
         // Envoi SMS au destinataire de l'invitation
         try {
             // Charger le libellé depuis la BDD (relation LAZY non chargée depuis le JSON)
-            String tontineLibelle = "une tontine";
+            String tontineLibelle = "un Adashe";
             if (saved.getTontine() != null && saved.getTontine().getIdTontine() != null) {
                 tontineRepository.findById(saved.getTontine().getIdTontine())
                         .ifPresent(t -> saved.getTontine().setLibelle(t.getLibelle()));
                 tontineLibelle = saved.getTontine().getLibelle() != null
                         ? saved.getTontine().getLibelle()
-                        : "une tontine";
+                        : "un Adashe";
             }
             // Message sans accents, max 160 caracteres (contrainte GSM 7-bit)
             String message = supprimerAccents(
-                "Vous etes invite(e) a rejoindre la tontine \""
+                "Vous etes invite(e) a rejoindre l'Adashe \""
                 + tontineLibelle
-                + "\". Connectez-vous a Kassouwata pour accepter ou refuser.");
+                + "\". Connectez-vous a KASUWATA My Buz (Adashen Waya) pour accepter ou refuser.");
             if (message.length() > 160) {
                 message = message.substring(0, 160);
             }
@@ -161,6 +161,18 @@ public class DemandeAdhesionController {
 
             if (demande.getMembre() == null) {
                 demande.setMembre(connecte);
+            }
+            var tontine = demande.getTontine();
+            if (newDemande.getStatut() == com.techinnov.kassouwata_back.enums.DemandeAdhesionStatus.ACCEPTEE
+                    && demande.getStatut() != com.techinnov.kassouwata_back.enums.DemandeAdhesionStatus.ACCEPTEE
+                    && tontine != null && tontine.getNombreMembres() != null) {
+                long acceptes = demandeAdhesionRepository.findByTontineId(tontine.getIdTontine()).stream()
+                        .filter(d -> d.getStatut() == com.techinnov.kassouwata_back.enums.DemandeAdhesionStatus.ACCEPTEE)
+                        .count();
+                if (acceptes >= tontine.getNombreMembres()) {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT,
+                            "Cet Adashé est complet (" + tontine.getNombreMembres() + " membres).");
+                }
             }
             demande.setStatut(newDemande.getStatut());
         }

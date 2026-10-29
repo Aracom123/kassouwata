@@ -3,8 +3,6 @@ import '../../domain/entities/personne_entity.dart';
 
 part 'personne_model.g.dart';
 
-/// Convertit int ou String en String (robustesse typage backend).
-String _toStringId(dynamic value) => value?.toString() ?? '';
 
 @JsonSerializable()
 class PersonneModel extends PersonneEntity {

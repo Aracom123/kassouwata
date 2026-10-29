@@ -7,6 +7,7 @@ import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/complete_profile_bloc.dart';
 import 'edit_profile_page.dart';
+import '../../../../espaces/espace_menu.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -16,7 +17,7 @@ class ProfilePage extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is Unauthenticated) {
-          context.go('/home');
+          context.go('/espaces');
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
@@ -79,6 +80,7 @@ class _ProfileView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const BoutonMenu(),
         title: const Text('Mon profil'),
         actions: [
           IconButton(

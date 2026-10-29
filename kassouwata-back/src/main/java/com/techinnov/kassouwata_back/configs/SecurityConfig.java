@@ -51,6 +51,12 @@ public class SecurityConfig {
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
+            // Requête sans authentification valide (jeton absent, expiré, ou compte
+            // suspendu) → 401 : les applications déconnectent alors l'utilisateur.
+            // Un 403 reste réservé aux droits insuffisants.
+            .exceptionHandling(e -> e.authenticationEntryPoint(
+                new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED)))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -81,6 +87,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/payment/admin/**").hasRole("ADMIN")
                 // Jeton de l'agrégateur : jamais exposé publiquement (test réservé aux administrateurs)
                 .requestMatchers("/api/payment/token").hasRole("ADMIN")
+                // Changement de statut d'un compte : administrateurs uniquement
+                .requestMatchers(HttpMethod.PATCH, "/api/nosUsers/*/statut").hasRole("ADMIN")
                 // Dashboard et endpoints backoffice : accès pour tout utilisateur authentifié avec un token valide
                 .requestMatchers("/api/nosDashboards/**").authenticated()
                 .requestMatchers("/api/nosCommandes/**").authenticated()

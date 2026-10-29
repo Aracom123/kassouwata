@@ -148,6 +148,24 @@ export class TontineViewComponent implements OnInit {
     return map[statut] ?? statut;
   }
 
+  // ─── Type / statut Adashé ─────────────────────────────────────
+  private readonly statutsAdashe: Record<string, { label: string; classes: string }> = {
+    EN_ATTENTE_VENDEUR: { label: 'En attente du vendeur', classes: 'bg-warning-50 text-warning-700 dark:bg-warning-900/20 dark:text-warning-400' },
+    ACTIF:              { label: 'Actif',                 classes: 'bg-success-50 text-success-700 dark:bg-success-900/20 dark:text-success-400' },
+    REFUSE:             { label: 'Refusé',                classes: 'bg-error-50 text-error-700 dark:bg-error-900/20 dark:text-error-400' },
+    OBJECTIF_ATTEINT:   { label: 'Objectif atteint',      classes: 'bg-brand-50 text-brand-700 dark:bg-brand-900/20 dark:text-brand-400' },
+  };
+
+  statutAdasheLabel(): string {
+    const s = this.tontine?.statutAdashe || 'ACTIF';
+    return this.statutsAdashe[s]?.label ?? s;
+  }
+
+  statutAdasheClasses(): string {
+    const s = this.tontine?.statutAdashe || 'ACTIF';
+    return this.statutsAdashe[s]?.classes ?? 'bg-gray-100 text-gray-600';
+  }
+
   getPeriodiciteLabel(p: string): string {
     const map: Record<string, string> = {
       HEBDOMADAIRE: 'Hebdomadaire', MENSUEL: 'Mensuel',
